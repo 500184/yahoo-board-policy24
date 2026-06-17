@@ -1,0 +1,58 @@
+name: Yahoo board monitor policy24
+
+on:
+  repository_dispatch:
+    types: [policy24_monitor]
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: yahoo-board-monitor-policy24
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run policy24 monitor
+        run: python monitor_policy24.py
+        env:
+          IFTTT_WEBHOOK_KEY: ${{ secrets.IFTTT_WEBHOOK_KEY }}
+          IFTTT_EVENT_NAME: ${{ secrets.IFTTT_EVENT_NAME }}
+
+          POST_SPIKE_THRESHOLD: '5'
+          POST_SPIKE_ONLY_THRESHOLD: '8'
+          ALERT_POST_SPIKE_ONLY: 'true'
+          ALERT_ON_FIRST_RUN: 'false'
+
+          REQUEST_INTERVAL_SEC: '2.0'
+          MAX_POSTS_PER_STOCK: '40'
+
+      - name: Commit state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state_policy24.json
+          if git diff --cached --quiet; then
+            echo "No state changes"
+          else
+            git commit -m "Update policy24 board monitor state"
+            git push
+          fi
