@@ -90,6 +90,14 @@ WATCHLIST: List[Dict[str, str]] = [
     {"code": "4398", "name": "ブロードバンドセキュリティ", "theme": "サイバー"},
     {"code": "3042", "name": "セキュアヴェイル", "theme": "サイバー"},
     {"code": "2326", "name": "デジタルアーツ", "theme": "官公庁サイバー"},
+    
+        # 追加候補：宇宙・量子・AI・官公庁サイバー
+    {"code": "290A", "name": "Synspective", "theme": "宇宙/JAXA"},
+    {"code": "3040", "name": "ソリトンシステムズ", "theme": "官公庁サイバー"},
+    {"code": "5582", "name": "グリッド", "theme": "量子/NEDO"},
+    {"code": "5586", "name": "Laboro.AI", "theme": "国策AI"},
+    {"code": "135A", "name": "VRAIN Solution", "theme": "製造AI/AIロボ"},
+    {"code": "4055", "name": "ティアンドエスグループ", "theme": "AI/半導体"},
 ]
 
 
