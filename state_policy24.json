@@ -50,7 +50,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:21+09:00"
+      "updated_at": "2026-07-15T04:02:20+09:00"
     },
     "4488": {
       "name": "AI inside",
@@ -101,7 +101,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:23+09:00"
+      "updated_at": "2026-07-15T04:02:23+09:00"
     },
     "5572": {
       "name": "Ridge-i",
@@ -153,7 +153,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:27+09:00"
+      "updated_at": "2026-07-15T04:02:26+09:00"
     },
     "4418": {
       "name": "JDSC",
@@ -205,7 +205,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:29+09:00"
+      "updated_at": "2026-07-15T04:02:29+09:00"
     },
     "4011": {
       "name": "ヘッドウォータース",
@@ -256,7 +256,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:32+09:00"
+      "updated_at": "2026-07-15T04:02:33+09:00"
     },
     "3687": {
       "name": "フィックスターズ",
@@ -307,7 +307,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:35+09:00"
+      "updated_at": "2026-07-15T04:02:36+09:00"
     },
     "3778": {
       "name": "さくらインターネット",
@@ -315,83 +315,83 @@
       "url": "https://finance.yahoo.co.jp/quote/3778.T/forum",
       "seen_post_ids": [
         "ebb69aa9a8385aad",
-        "c197d82c355b5f20",
-        "80d2056478e32fcc",
-        "7e6eaee686e31b4a",
         "4afc7276dc607d97",
-        "c6319f6bc41088d1",
-        "e473391ed2b2ac7a",
-        "fd2b092287b44686",
-        "666bc32b39333e88",
-        "0fe01849889943ff",
-        "22d3c3bb31371a44",
-        "5a4cf4a9f7b15382",
-        "6e7663e810335de8",
-        "86ef35329e228de8",
-        "c7ec547a74bb6c99",
-        "034558c4e9aad90f",
-        "038d72eb218c19aa",
-        "5b2333c7112181ea",
-        "29806d90d3463b6e",
-        "8b46361e43b0bfca",
-        "10dcab7f973a8583",
-        "c87cb04c54c64e3e",
-        "2c44770893650e73",
-        "f188ad3867a4658a",
-        "de6c6fec033f156a",
-        "9e2bbe4d082fa789",
-        "d9122fd5918aba63",
-        "aa194d113e1880a4",
-        "e8435ec3ce7efa67",
-        "beb68a7cd3333b87",
-        "69300ad00371237a",
-        "61f4becfdb34bc2a",
-        "8b10d72e9b7bd06e",
-        "feeb678e32c5b33b",
-        "20cfce7fbe830786",
-        "c98b15ab802065a2",
-        "3be5d560a68e8663",
-        "1f08983a2ee5dd92",
-        "7e60ef9f77ef82f2",
-        "578379c5954da6f1",
-        "4c8a0134f86c15ea",
-        "cd97dc294092db51",
-        "6290765d4622022d",
-        "052ab19c2be3bedd",
-        "826072718dd185d6",
         "73199e7f8bc89e1a",
-        "5f52959506c61b57",
-        "d8d84c5d7b15a796",
-        "dc93c2d747b6aec0",
-        "1fcb4686c9a58b38",
-        "5aff74f2d9746f30",
-        "a472d733f1288fe8",
-        "a7ba88c73cdbd825",
-        "4d626bb60fdc717b",
-        "91ee57eae7095f3c",
+        "29806d90d3463b6e",
         "3f3938278c16bb03",
-        "f6a3721d3f847784",
-        "86f59eb9c53ae509",
-        "92aa03960da73382",
-        "c183e12abc4c0ba3",
-        "4c81250edc7a27a0",
-        "18bbcfe0f5d0035a",
-        "8bcc37a3b018c470",
-        "e18697a0103b235b",
-        "4c6e9112081907ae",
+        "034558c4e9aad90f",
+        "4d626bb60fdc717b",
+        "052ab19c2be3bedd",
         "5e51db3ade33ead8",
-        "4f1d634a77e2d46d",
-        "f73ec4021c0934e5",
+        "80d2056478e32fcc",
+        "c197d82c355b5f20",
+        "6e7663e810335de8",
+        "5b2333c7112181ea",
+        "f188ad3867a4658a",
+        "20cfce7fbe830786",
+        "86f59eb9c53ae509",
+        "7e60ef9f77ef82f2",
+        "dc93c2d747b6aec0",
+        "5f52959506c61b57",
+        "5a4cf4a9f7b15382",
         "64a99dbc5a0eeb02",
-        "dc628ca974b13f8f",
+        "fd2b092287b44686",
         "158e5f13e7b09cc3",
+        "4f1d634a77e2d46d",
+        "c7ec547a74bb6c99",
+        "61f4becfdb34bc2a",
+        "c183e12abc4c0ba3",
+        "cd97dc294092db51",
+        "22d3c3bb31371a44",
+        "3be5d560a68e8663",
+        "f6a3721d3f847784",
+        "a472d733f1288fe8",
+        "4c81250edc7a27a0",
+        "dc628ca974b13f8f",
+        "e8435ec3ce7efa67",
+        "c6319f6bc41088d1",
+        "1fcb4686c9a58b38",
+        "c87cb04c54c64e3e",
+        "4c6e9112081907ae",
+        "aa194d113e1880a4",
+        "1f08983a2ee5dd92",
+        "e18697a0103b235b",
+        "e04c9a03ef3e443d",
+        "038d72eb218c19aa",
+        "578379c5954da6f1",
+        "feeb678e32c5b33b",
+        "7e6eaee686e31b4a",
+        "92aa03960da73382",
+        "beb68a7cd3333b87",
+        "6290765d4622022d",
+        "8b10d72e9b7bd06e",
         "5161a1b015b41317",
-        "e04c9a03ef3e443d"
+        "5aff74f2d9746f30",
+        "0fe01849889943ff",
+        "2c44770893650e73",
+        "de6c6fec033f156a",
+        "d8d84c5d7b15a796",
+        "69300ad00371237a",
+        "666bc32b39333e88",
+        "8b46361e43b0bfca",
+        "d9122fd5918aba63",
+        "4c8a0134f86c15ea",
+        "e473391ed2b2ac7a",
+        "18bbcfe0f5d0035a",
+        "c98b15ab802065a2",
+        "a7ba88c73cdbd825",
+        "86ef35329e228de8",
+        "91ee57eae7095f3c",
+        "8bcc37a3b018c470",
+        "10dcab7f973a8583",
+        "f73ec4021c0934e5",
+        "9e2bbe4d082fa789",
+        "826072718dd185d6"
       ],
       "last_seen_count_on_page": 1,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:38+09:00"
+      "updated_at": "2026-07-15T04:02:38+09:00"
     },
     "278A": {
       "name": "Terra Drone",
@@ -438,14 +438,14 @@
         "ee4f1aeffe2e970d",
         "30c2f8fd7b10c9ec",
         "2770c6a0f116d49d",
-        "072394c083541a94",
         "209106cf0ea3bb01",
+        "072394c083541a94",
         "32e4ab5ccf27d2b1"
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:41+09:00"
+      "updated_at": "2026-07-15T04:02:42+09:00"
     },
     "6232": {
       "name": "ACSL",
@@ -496,7 +496,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:44+09:00"
+      "updated_at": "2026-07-15T04:02:45+09:00"
     },
     "5597": {
       "name": "ブルーイノベーション",
@@ -549,7 +549,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:47+09:00"
+      "updated_at": "2026-07-15T04:02:48+09:00"
     },
     "218A": {
       "name": "Liberaware",
@@ -600,7 +600,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:50+09:00"
+      "updated_at": "2026-07-15T04:02:51+09:00"
     },
     "186A": {
       "name": "アストロスケールHD",
@@ -608,49 +608,49 @@
       "url": "https://finance.yahoo.co.jp/quote/186A.T/forum",
       "seen_post_ids": [
         "2f97defce17cf2e6",
-        "b8d4836fa4fcc5b7",
-        "5b7c075f20df671d",
-        "54bdff755e8ab373",
-        "0d59dd76dee68457",
-        "06be807b999b171c",
-        "b5b629cbdac12879",
-        "f5103756e83df1bc",
-        "c183304180c79f33",
-        "2c4c3fd3a528ce0b",
-        "0e3a7a9bd4d7fe1d",
-        "954a42a91f025dcc",
-        "63e0272507ab2bb4",
-        "21101c21ac691391",
-        "e29c9e08a8fc6e11",
-        "55caf24cc555e3ac",
+        "d8f956f4910d536e",
         "ddd298295c70abd4",
+        "2c4c3fd3a528ce0b",
+        "88ebca58c4bf1be5",
+        "c183304180c79f33",
+        "ead4919b473dd020",
+        "5b7c075f20df671d",
         "611afbc5226e9a3c",
+        "7fd064ce9c2e815d",
+        "954a42a91f025dcc",
+        "ed46def9877eeff1",
+        "e29c9e08a8fc6e11",
+        "75a18a1411c8979b",
+        "70edfd89c2ce5064",
+        "21101c21ac691391",
+        "b2397c130cf394bd",
+        "e68ad775449d5d63",
+        "b5b629cbdac12879",
+        "483e2c90eaa39f13",
+        "36e1272122d8dce6",
+        "72d96e33a1cfff54",
+        "76f5acdeae9c3994",
+        "9d585e315b0aef86",
+        "f5103756e83df1bc",
+        "55caf24cc555e3ac",
+        "fbdc14ead5498bf1",
         "8b46e5cf47965c37",
         "c1b61de94c5ab708",
-        "fbdc14ead5498bf1",
         "d29bebfd35e654cf",
-        "88ebca58c4bf1be5",
-        "e68ad775449d5d63",
-        "9d585e315b0aef86",
+        "54bdff755e8ab373",
+        "63e0272507ab2bb4",
+        "b8d4836fa4fcc5b7",
         "616a67ffe00f1aaf",
-        "483e2c90eaa39f13",
-        "ed46def9877eeff1",
-        "75a18a1411c8979b",
-        "b2397c130cf394bd",
-        "36e1272122d8dce6",
-        "ead4919b473dd020",
         "5b6e6fd657716ff2",
+        "0e3a7a9bd4d7fe1d",
+        "06be807b999b171c",
         "84322cd8ae063db3",
-        "7fd064ce9c2e815d",
-        "70edfd89c2ce5064",
-        "d8f956f4910d536e",
-        "72d96e33a1cfff54",
-        "76f5acdeae9c3994"
+        "0d59dd76dee68457"
       ],
       "last_seen_count_on_page": 1,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:53+09:00"
+      "updated_at": "2026-07-15T04:02:54+09:00"
     },
     "9348": {
       "name": "ispace",
@@ -701,7 +701,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:56+09:00"
+      "updated_at": "2026-07-15T04:02:57+09:00"
     },
     "464A": {
       "name": "QPSホールディングス",
@@ -752,7 +752,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:52:58+09:00"
+      "updated_at": "2026-07-15T04:03:00+09:00"
     },
     "7721": {
       "name": "東京計器",
@@ -803,7 +803,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:01+09:00"
+      "updated_at": "2026-07-15T04:03:03+09:00"
     },
     "6946": {
       "name": "日本アビオニクス",
@@ -855,7 +855,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:04+09:00"
+      "updated_at": "2026-07-15T04:03:06+09:00"
     },
     "6864": {
       "name": "エヌエフHD",
@@ -907,7 +907,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:07+09:00"
+      "updated_at": "2026-07-15T04:03:09+09:00"
     },
     "6521": {
       "name": "オキサイド",
@@ -958,7 +958,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:10+09:00"
+      "updated_at": "2026-07-15T04:03:12+09:00"
     },
     "3692": {
       "name": "FFRIセキュリティ",
@@ -1009,7 +1009,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:13+09:00"
+      "updated_at": "2026-07-15T04:03:15+09:00"
     },
     "4493": {
       "name": "サイバーセキュリティクラウド",
@@ -1060,7 +1060,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:16+09:00"
+      "updated_at": "2026-07-15T04:03:18+09:00"
     },
     "4417": {
       "name": "グローバルセキュリティエキスパート",
@@ -1112,7 +1112,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:19+09:00"
+      "updated_at": "2026-07-15T04:03:22+09:00"
     },
     "4398": {
       "name": "ブロードバンドセキュリティ",
@@ -1159,16 +1159,16 @@
         "f56cdc687e1018d2",
         "7eb336abec48541d",
         "7c7647580c2fe5af",
-        "63d6971093b8c7e4",
-        "db41a5e321100b53",
-        "29909f3ebfb046df",
         "2d8a68cb9eb6a92c",
-        "eae9066145db5db5"
+        "29909f3ebfb046df",
+        "63d6971093b8c7e4",
+        "eae9066145db5db5",
+        "db41a5e321100b53"
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:22+09:00"
+      "updated_at": "2026-07-15T04:03:25+09:00"
     },
     "3042": {
       "name": "セキュアヴェイル",
@@ -1219,7 +1219,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:25+09:00"
+      "updated_at": "2026-07-15T04:03:28+09:00"
     },
     "2326": {
       "name": "デジタルアーツ",
@@ -1270,7 +1270,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:28+09:00"
+      "updated_at": "2026-07-15T04:03:31+09:00"
     },
     "290A": {
       "name": "Synspective",
@@ -1321,7 +1321,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:30+09:00"
+      "updated_at": "2026-07-15T04:03:34+09:00"
     },
     "3040": {
       "name": "ソリトンシステムズ",
@@ -1372,7 +1372,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:33+09:00"
+      "updated_at": "2026-07-15T04:03:37+09:00"
     },
     "5582": {
       "name": "グリッド",
@@ -1423,7 +1423,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:36+09:00"
+      "updated_at": "2026-07-15T04:03:40+09:00"
     },
     "5586": {
       "name": "Laboro.AI",
@@ -1474,7 +1474,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:39+09:00"
+      "updated_at": "2026-07-15T04:03:43+09:00"
     },
     "135A": {
       "name": "VRAIN Solution",
@@ -1526,7 +1526,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-15T03:53:43+09:00"
+      "updated_at": "2026-07-15T04:03:46+09:00"
     },
     "4055": {
       "name": "ティアンドエスグループ",
@@ -1577,9 +1577,9 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-15T03:53:49+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-15T04:03:49+09:00"
     }
   },
-  "updated_at": "2026-07-15T03:53:51+09:00"
+  "updated_at": "2026-07-15T04:03:51+09:00"
 }
