@@ -112,6 +112,46 @@ BOARDS = [
         "code": "6769",
         "url": "https://finance.yahoo.co.jp/quote/6769.T/forum",
     },
+        {
+        "name": "IMV",
+        "code": "7760",
+        "url": "https://finance.yahoo.co.jp/quote/7760.T/forum",
+    },
+    {
+        "name": "Ridge-i",
+        "code": "5572",
+        "url": "https://finance.yahoo.co.jp/quote/5572.T/forum",
+    },
+    {
+        "name": "Liberaware",
+        "code": "218A",
+        "url": "https://finance.yahoo.co.jp/quote/218A.T/forum",
+    },
+    {
+        "name": "Fusic",
+        "code": "5256",
+        "url": "https://finance.yahoo.co.jp/quote/5256.T/forum",
+    },
+    {
+        "name": "Synspective",
+        "code": "290A",
+        "url": "https://finance.yahoo.co.jp/quote/290A.T/forum",
+    },
+    {
+        "name": "Kudan",
+        "code": "4425",
+        "url": "https://finance.yahoo.co.jp/quote/4425.T/forum",
+    },
+    {
+        "name": "小野測器",
+        "code": "6858",
+        "url": "https://finance.yahoo.co.jp/quote/6858.T/forum",
+    },
+    {
+        "name": "技研製作所",
+        "code": "6289",
+        "url": "https://finance.yahoo.co.jp/quote/6289.T/forum",
+    },
 ]
 
 
