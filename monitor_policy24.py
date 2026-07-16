@@ -3,6 +3,7 @@ import re
 import json
 import time
 import random
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -22,139 +23,207 @@ SURGE_THRESHOLD = 5
 # 同じ銘柄の重複通知を防ぐ時間
 ALERT_COOLDOWN_MINUTES = 15
 
-# Yahoo側に負荷をかけすぎないよう、銘柄ごとに少し待つ
+# 各グループ内で銘柄ごとに待つ時間
 MIN_SLEEP_SEC = 1.5
 MAX_SLEEP_SEC = 3.5
 
+# 同時に動かすグループ数
+GROUP_COUNT = 2
+
 
 # ============================================================
-# 監視銘柄：24銘柄
+# Yahooアクセス用ヘッダー
 # ============================================================
 
-BOARDS = [
-    {
-        "name": "リケンNPR",
-        "code": "6209",
-        "url": "https://finance.yahoo.co.jp/quote/6209.T/forum",
-    },
-    {
-        "name": "QPSホールディングス",
-        "code": "464A",
-        "url": "https://finance.yahoo.co.jp/quote/464A.T/forum",
-    },
-    {
-        "name": "アストロスケールHD",
-        "code": "186A",
-        "url": "https://finance.yahoo.co.jp/quote/186A.T/forum",
-    },
-    {
-        "name": "Terra Drone",
-        "code": "278A",
-        "url": "https://finance.yahoo.co.jp/quote/278A.T/forum",
-    },
-    {
-        "name": "KLab",
-        "code": "3656",
-        "url": "https://finance.yahoo.co.jp/quote/3656.T/forum",
-    },
-    {
-        "name": "gumi",
-        "code": "3903",
-        "url": "https://finance.yahoo.co.jp/quote/3903.T/forum",
-    },
-    {
-        "name": "ワンダープラネット",
-        "code": "4199",
-        "url": "https://finance.yahoo.co.jp/quote/4199.T/forum",
-    },
-    {
-        "name": "ジャパンエンジン",
-        "code": "6016",
-        "url": "https://finance.yahoo.co.jp/quote/6016.T/forum",
-    },
-    {
-        "name": "ELEMENTS",
-        "code": "5246",
-        "url": "https://finance.yahoo.co.jp/quote/5246.T/forum",
-    },
-    {
-        "name": "中越パルプ工業",
-        "code": "3877",
-        "url": "https://finance.yahoo.co.jp/quote/3877.T/forum",
-    },
-    {
-        "name": "明電舎",
-        "code": "6508",
-        "url": "https://finance.yahoo.co.jp/quote/6508.T/forum",
-    },
-    {
-        "name": "カナデビア",
-        "code": "7004",
-        "url": "https://finance.yahoo.co.jp/quote/7004.T/forum",
-    },
-    {
-        "name": "日本触媒",
-        "code": "4114",
-        "url": "https://finance.yahoo.co.jp/quote/4114.T/forum",
-    },
-    {
-        "name": "駒井ハルテック",
-        "code": "5915",
-        "url": "https://finance.yahoo.co.jp/quote/5915.T/forum",
-    },
-    {
-        "name": "ACSL",
-        "code": "6232",
-        "url": "https://finance.yahoo.co.jp/quote/6232.T/forum",
-    },
-    {
-        "name": "ザインエレクトロニクス",
-        "code": "6769",
-        "url": "https://finance.yahoo.co.jp/quote/6769.T/forum",
-    },
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 "
+        "(iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 "
+        "(KHTML, like Gecko) "
+        "Version/17.0 Mobile/15E148 Safari/604.1"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,"
+        "application/xml;q=0.9,*/*;q=0.8"
+    ),
+    "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
+}
 
-    # 追加8銘柄
-    {
-        "name": "IMV",
-        "code": "7760",
-        "url": "https://finance.yahoo.co.jp/quote/7760.T/forum",
-    },
-    {
-        "name": "Ridge-i",
-        "code": "5572",
-        "url": "https://finance.yahoo.co.jp/quote/5572.T/forum",
-    },
-    {
-        "name": "Liberaware",
-        "code": "218A",
-        "url": "https://finance.yahoo.co.jp/quote/218A.T/forum",
-    },
-    {
-        "name": "Fusic",
-        "code": "5256",
-        "url": "https://finance.yahoo.co.jp/quote/5256.T/forum",
-    },
-    {
-        "name": "Synspective",
-        "code": "290A",
-        "url": "https://finance.yahoo.co.jp/quote/290A.T/forum",
-    },
-    {
-        "name": "Kudan",
-        "code": "4425",
-        "url": "https://finance.yahoo.co.jp/quote/4425.T/forum",
-    },
-    {
-        "name": "小野測器",
-        "code": "6858",
-        "url": "https://finance.yahoo.co.jp/quote/6858.T/forum",
-    },
-    {
-        "name": "技研製作所",
-        "code": "6289",
-        "url": "https://finance.yahoo.co.jp/quote/6289.T/forum",
-    },
+
+# ============================================================
+# 監視銘柄：91銘柄
+# ============================================================
+
+BOARD_ITEMS = [
+    # --------------------------------------------------------
+    # 政府採択・AI・デジタル：35銘柄
+    # --------------------------------------------------------
+    ("ELEMENTS", "5246"),
+    ("ABEJA", "5574"),
+    ("Ridge-i", "5572"),
+    ("ヘッドウォータース", "4011"),
+    ("Fusic", "5256"),
+    ("フィックスターズ", "3687"),
+    ("エクサウィザーズ", "4259"),
+    ("PKSHA Technology", "3993"),
+    ("AI inside", "4488"),
+    ("Laboro.AI", "5586"),
+    ("HEROZ", "4382"),
+    ("グリッド", "5582"),
+    ("オプティム", "3694"),
+    ("JDSC", "4418"),
+    ("データセクション", "3905"),
+    ("さくらインターネット", "3778"),
+    ("ジーデップ・アドバンス", "5885"),
+    ("FIXER", "5129"),
+    ("サイバートラスト", "4498"),
+    ("FFRIセキュリティ", "3692"),
+    ("サイバーセキュリティクラウド", "4493"),
+    ("網屋", "4258"),
+    ("ブロードバンドセキュリティ", "4398"),
+    ("ソリトンシステムズ", "3040"),
+    ("グローバルセキュリティエキスパート", "4417"),
+    ("セグエグループ", "3968"),
+    ("HENNGE", "4475"),
+    ("GMOグローバルサイン・ホールディングス", "3788"),
+    ("セキュア", "4264"),
+    ("サーバーワークス", "4434"),
+    ("BeeX", "4270"),
+    ("テラスカイ", "3915"),
+    ("システムサポートホールディングス", "4396"),
+    ("ARアドバンストテクノロジ", "5578"),
+    ("JIG-SAW", "3914"),
+
+    # --------------------------------------------------------
+    # 宇宙・ドローン・インフラ：20銘柄
+    # --------------------------------------------------------
+    ("アストロスケールHD", "186A"),
+    ("Synspective", "290A"),
+    ("QPSホールディングス", "464A"),
+    ("ispace", "9348"),
+    ("Terra Drone", "278A"),
+    ("ACSL", "6232"),
+    ("Liberaware", "218A"),
+    ("Kudan", "4425"),
+    ("セーフィー", "4375"),
+    ("アイサンテクノロジー", "4667"),
+    ("ゼンリン", "9474"),
+    ("エコモット", "3987"),
+    ("ウェザーニューズ", "4825"),
+    ("スパイダープラス", "4192"),
+    ("IMV", "7760"),
+    ("ウエスコホールディングス", "6091"),
+    ("フコク", "5185"),
+    ("シンフォニアテクノロジー", "6507"),
+    ("イーグル工業", "6486"),
+    ("技研製作所", "6289"),
+
+    # --------------------------------------------------------
+    # 防衛・センサー・通信：12銘柄
+    # --------------------------------------------------------
+    ("ジャパンエンジンコーポレーション", "6016"),
+    ("東京計器", "7721"),
+    ("日本アビオニクス", "6946"),
+    ("石川製作所", "6208"),
+    ("豊和工業", "6203"),
+    ("細谷火工", "4274"),
+    ("多摩川ホールディングス", "6838"),
+    ("新明和工業", "7224"),
+    ("QDレーザ", "6613"),
+    ("santec Holdings", "6777"),
+    ("アンリツ", "6754"),
+    ("小野測器", "6858"),
+
+    # --------------------------------------------------------
+    # ゲーム：24銘柄
+    # --------------------------------------------------------
+    ("KLab", "3656"),
+    ("enish", "3667"),
+    ("オルトプラス", "3672"),
+    ("アエリア", "3758"),
+    ("ケイブ", "3760"),
+    ("ドリコム", "3793"),
+    ("サイバーステップ", "3810"),
+    ("日本一ソフトウェア", "3851"),
+    ("gumi", "3903"),
+    ("Aiming", "3911"),
+    ("モバイルファクトリー", "3912"),
+    ("マイネット", "3928"),
+    ("アカツキグループ", "3932"),
+    ("エディア", "3935"),
+    ("アピリッツ", "4174"),
+    ("coly", "4175"),
+    ("ワンダープラネット", "4199"),
+    ("バンク・オブ・イノベーション", "4393"),
+    ("イマジニア", "4644"),
+    ("東京通信グループ", "7359"),
+    ("マーベラス", "7844"),
+    ("ブシロード", "7803"),
+    ("IGポート", "3791"),
+    ("日本ファルコム", "3723"),
 ]
+
+
+# 企業コードから掲示板URLを自動生成
+ALL_BOARDS = [
+    {
+        "name": name,
+        "code": code,
+        "url": f"https://finance.yahoo.co.jp/quote/{code}.T/forum",
+    }
+    for name, code in BOARD_ITEMS
+]
+
+
+# 交互に振り分けて、46銘柄と45銘柄に分割
+BOARD_GROUPS = [
+    ALL_BOARDS[0::2],
+    ALL_BOARDS[1::2],
+]
+
+
+def log(group_number, message):
+    """
+    グループ番号付きでログを表示する。
+    """
+    print(f"[G{group_number}] {message}", flush=True)
+
+
+def validate_boards():
+    """
+    企業コードの重複やグループ分割漏れがないか確認する。
+    """
+    codes = [
+        board["code"]
+        for board in ALL_BOARDS
+    ]
+
+    duplicate_codes = sorted(
+        {
+            code
+            for code in codes
+            if codes.count(code) > 1
+        }
+    )
+
+    if duplicate_codes:
+        raise RuntimeError(
+            "監視コードが重複しています: "
+            + ", ".join(duplicate_codes)
+        )
+
+    grouped_count = sum(
+        len(group)
+        for group in BOARD_GROUPS
+    )
+
+    if grouped_count != len(ALL_BOARDS):
+        raise RuntimeError(
+            "グループ分割後の銘柄数が一致しません"
+        )
 
 
 def load_state():
@@ -165,16 +234,23 @@ def load_state():
         return {}
 
     try:
-        with open(STATE_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        with open(
+            STATE_PATH,
+            "r",
+            encoding="utf-8",
+        ) as file:
+            data = json.load(file)
 
         if isinstance(data, dict):
             return data
 
         return {}
 
-    except Exception as e:
-        print(f"state load error: {e}")
+    except Exception as error:
+        print(
+            f"state load error: {error}",
+            flush=True,
+        )
         return {}
 
 
@@ -182,33 +258,52 @@ def save_state(state):
     """
     通知時刻や最終実行結果を保存する。
     """
-    state_dir = os.path.dirname(STATE_PATH)
+    state_dir = os.path.dirname(
+        STATE_PATH
+    )
 
     if state_dir:
-        os.makedirs(state_dir, exist_ok=True)
+        os.makedirs(
+            state_dir,
+            exist_ok=True,
+        )
 
-    temporary_path = STATE_PATH + ".tmp"
+    temporary_path = (
+        STATE_PATH + ".tmp"
+    )
 
-    with open(temporary_path, "w", encoding="utf-8") as f:
+    with open(
+        temporary_path,
+        "w",
+        encoding="utf-8",
+    ) as file:
         json.dump(
             state,
-            f,
+            file,
             ensure_ascii=False,
             indent=2,
         )
 
-    os.replace(temporary_path, STATE_PATH)
+    os.replace(
+        temporary_path,
+        STATE_PATH,
+    )
 
 
 def is_market_open(now):
     """
     日本株の市場時間内か判定する。
-    土日は市場時間外。祝日は未対応。
+
+    土日は市場時間外。
+    祝日は未対応。
     """
     if now.weekday() >= 5:
         return False
 
-    minutes = now.hour * 60 + now.minute
+    minutes = (
+        now.hour * 60
+        + now.minute
+    )
 
     morning_open = 9 * 60
     morning_close = 11 * 60 + 30
@@ -217,62 +312,70 @@ def is_market_open(now):
     afternoon_close = 15 * 60 + 30
 
     return (
-        morning_open <= minutes < morning_close
-        or afternoon_open <= minutes < afternoon_close
+        morning_open
+        <= minutes
+        < morning_close
+        or afternoon_open
+        <= minutes
+        < afternoon_close
     )
 
 
-def fetch_html(url):
+def fetch_html(
+    session,
+    url,
+    group_number,
+):
     """
     Yahooファイナンス掲示板のHTMLを取得する。
-    一時的なエラーに備え、最大3回試行する。
-    """
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 "
-            "(iPhone; CPU iPhone OS 17_0 like Mac OS X) "
-            "AppleWebKit/605.1.15 "
-            "(KHTML, like Gecko) "
-            "Version/17.0 Mobile/15E148 Safari/604.1"
-        ),
-        "Accept": (
-            "text/html,application/xhtml+xml,"
-            "application/xml;q=0.9,*/*;q=0.8"
-        ),
-        "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache",
-    }
 
+    一時的なエラーに備え、
+    最大3回試行する。
+    """
     last_error = None
 
     for attempt in range(3):
         try:
-            response = requests.get(
+            response = session.get(
                 url,
-                headers=headers,
                 timeout=20,
             )
 
-            print(
-                f"  fetch attempt={attempt + 1} "
+            log(
+                group_number,
+                (
+                    f"fetch attempt={attempt + 1} "
+                    f"status={response.status_code}"
+                ),
+            )
+
+            if (
+                response.status_code == 200
+                and response.text
+            ):
+                return response.text
+
+            last_error = (
                 f"status={response.status_code}"
             )
 
-            if response.status_code == 200 and response.text:
-                return response.text
+        except Exception as error:
+            last_error = str(error)
 
-            last_error = f"status={response.status_code}"
-
-        except Exception as e:
-            last_error = str(e)
-
-            print(
-                f"  fetch error "
-                f"attempt={attempt + 1}: {e}"
+            log(
+                group_number,
+                (
+                    "fetch error "
+                    f"attempt={attempt + 1}: "
+                    f"{error}"
+                ),
             )
 
-        time.sleep(3 + attempt * 3)
+        # 再試行前だけ待つ
+        if attempt < 2:
+            time.sleep(
+                3 + attempt * 3
+            )
 
     raise RuntimeError(
         f"fetch failed: {last_error}"
@@ -281,7 +384,8 @@ def fetch_html(url):
 
 def html_to_text(html):
     """
-    HTMLからscript、styleなどを削除し、表示テキストに変換する。
+    HTMLからscriptやstyleなどを削除し、
+    表示テキストに変換する。
     """
     soup = BeautifulSoup(
         html,
@@ -308,21 +412,31 @@ def html_to_text(html):
     return text
 
 
-def extract_post_dates(html, now):
+def extract_post_dates(
+    html,
+    now,
+):
     """
     掲示板ページから投稿日時を抽出する。
 
-    直近20分より古い投稿も除外しない。
-    直近10分に投稿がない銘柄でも、正常に0件判定できるようにする。
-
-    同じ分に複数の投稿がある場合は、それぞれ別投稿として数える。
+    同じ時刻に複数投稿がある場合も、
+    投稿数分だけ日時を残す。
     """
     text = html_to_text(html)
 
     patterns = [
-        r"(\d{4})/(\d{1,2})/(\d{1,2})\s+([0-2]?\d):([0-5]\d)",
-        r"(\d{4})-(\d{1,2})-(\d{1,2})\s+([0-2]?\d):([0-5]\d)",
-        r"(\d{4})年(\d{1,2})月(\d{1,2})日\s+([0-2]?\d):([0-5]\d)",
+        (
+            r"(\d{4})/(\d{1,2})/(\d{1,2})"
+            r"\s+([0-2]?\d):([0-5]\d)"
+        ),
+        (
+            r"(\d{4})-(\d{1,2})-(\d{1,2})"
+            r"\s+([0-2]?\d):([0-5]\d)"
+        ),
+        (
+            r"(\d{4})年(\d{1,2})月(\d{1,2})日"
+            r"\s+([0-2]?\d):([0-5]\d)"
+        ),
     ]
 
     results = []
@@ -340,7 +454,13 @@ def extract_post_dates(html, now):
 
         for match in matches:
             try:
-                year, month, day, hour, minute = map(
+                (
+                    year,
+                    month,
+                    day,
+                    hour,
+                    minute,
+                ) = map(
                     int,
                     match.groups(),
                 )
@@ -354,36 +474,43 @@ def extract_post_dates(html, now):
                     tzinfo=JST,
                 )
 
-            except (ValueError, TypeError):
+            except (
+                ValueError,
+                TypeError,
+            ):
                 continue
 
-            # 現在時刻より未来の日時は誤取得として除外
-            if post_datetime > now + timedelta(minutes=1):
+            # 現在より未来の日時は誤取得として除外
+            if (
+                post_datetime
+                > now + timedelta(minutes=1)
+            ):
                 continue
 
-            # 古い投稿も残す
-            # judge_spike側で直近10分だけを判定する
-            results.append(post_datetime)
+            results.append(
+                post_datetime
+            )
 
-        # Yahoo掲示板では通常いずれか1種類の日付形式なので、
-        # 最初に見つかった形式だけを使用する
+        # 最初に見つかった日付形式だけを使用
         if results:
             break
 
-    results.sort(reverse=True)
+    results.sort(
+        reverse=True
+    )
 
     return results
 
 
-def judge_spike(post_dates, now):
+def judge_spike(
+    post_dates,
+    now,
+):
     """
     直近5分と、その前の5分の投稿数を比較する。
 
-    例：
-    直近5分 8件
-    前の5分 3件
-    差 +5件
-    → 通知対象
+    直近5分8件、前5分3件なら差は+5件。
+    この場合は通知対象。
     """
     last5 = 0
     prev5 = 0
@@ -393,20 +520,33 @@ def judge_spike(post_dates, now):
             now - post_datetime
         ).total_seconds() / 60
 
-        if 0 <= diff_minutes < 5:
+        if (
+            0
+            <= diff_minutes
+            < 5
+        ):
             last5 += 1
 
-        elif 5 <= diff_minutes < 10:
+        elif (
+            5
+            <= diff_minutes
+            < 10
+        ):
             prev5 += 1
 
         # 新しい順に並んでいるため、
-        # 10分以上前になったら以降の確認は不要
+        # 10分以上前になったら確認終了
         elif diff_minutes >= 10:
             break
 
-    surge = last5 - prev5
+    surge = (
+        last5 - prev5
+    )
 
-    should_alert = surge >= SURGE_THRESHOLD
+    should_alert = (
+        surge
+        >= SURGE_THRESHOLD
+    )
 
     return (
         should_alert,
@@ -424,14 +564,18 @@ def send_ifttt(
     prev5,
     surge,
     market_open,
+    group_number,
 ):
     """
     IFTTT Webhooksへ通知する。
     """
     if not IFTTT_KEY:
-        print(
-            "  IFTTT_KEY not set. "
-            "skip notification."
+        log(
+            group_number,
+            (
+                "IFTTT_KEY not set. "
+                "skip notification."
+            ),
         )
         return False
 
@@ -449,7 +593,9 @@ def send_ifttt(
     )
 
     payload = {
-        "value1": f"{name} 掲示板急増",
+        "value1": (
+            f"{name} 掲示板急増"
+        ),
         "value2": (
             f"{mode} / {code} / "
             f"直近5分:{last5}件"
@@ -468,10 +614,13 @@ def send_ifttt(
             timeout=20,
         )
 
-        print(
-            f"  IFTTT status="
-            f"{response.status_code} "
-            f"body={response.text[:120]}"
+        log(
+            group_number,
+            (
+                f"IFTTT status="
+                f"{response.status_code} "
+                f"body={response.text[:120]}"
+            ),
         )
 
         return (
@@ -480,25 +629,254 @@ def send_ifttt(
             < 300
         )
 
-    except Exception as e:
-        print(
-            f"  IFTTT error: {e}"
+    except Exception as error:
+        log(
+            group_number,
+            f"IFTTT error: {error}",
         )
         return False
 
 
-def main():
-    now = datetime.now(JST)
-    market_open = is_market_open(now)
+def process_group(
+    group_number,
+    boards,
+    alerts_snapshot,
+):
+    """
+    1つのグループを順番に監視する。
 
-    print(
-        f"start now={now.isoformat()} "
-        f"market_open={market_open}"
+    グループ1とグループ2は、
+    ThreadPoolExecutorで同時に実行される。
+    """
+    checked = 0
+    failed = 0
+    alerted = 0
+
+    alert_updates = {}
+
+    session = requests.Session()
+    session.headers.update(
+        HEADERS
+    )
+
+    log(
+        group_number,
+        (
+            "group start "
+            f"boards={len(boards)}"
+        ),
+    )
+
+    try:
+        for index, board in enumerate(
+            boards,
+            start=1,
+        ):
+            name = board["name"]
+            code = board["code"]
+            url = board["url"]
+
+            log(
+                group_number,
+                (
+                    f"{index}/{len(boards)} "
+                    f"{name} {code}"
+                ),
+            )
+
+            try:
+                html = fetch_html(
+                    session=session,
+                    url=url,
+                    group_number=group_number,
+                )
+
+                # 各銘柄の取得直後の時刻を使用する
+                board_now = datetime.now(
+                    JST
+                )
+
+                board_market_open = (
+                    is_market_open(
+                        board_now
+                    )
+                )
+
+                post_dates = (
+                    extract_post_dates(
+                        html=html,
+                        now=board_now,
+                    )
+                )
+
+                if not post_dates:
+                    log(
+                        group_number,
+                        "post date not found",
+                    )
+
+                    failed += 1
+                    continue
+
+                (
+                    should_alert,
+                    last5,
+                    prev5,
+                    surge,
+                ) = judge_spike(
+                    post_dates=post_dates,
+                    now=board_now,
+                )
+
+                log(
+                    group_number,
+                    (
+                        f"dates={len(post_dates)} "
+                        f"last5={last5} "
+                        f"prev5={prev5} "
+                        f"surge={surge:+d} "
+                        f"should_alert="
+                        f"{should_alert}"
+                    ),
+                )
+
+                last_alert_iso = (
+                    alerts_snapshot.get(
+                        code
+                    )
+                )
+
+                cooldown_ok = True
+
+                if last_alert_iso:
+                    try:
+                        last_alert = (
+                            datetime.fromisoformat(
+                                last_alert_iso
+                            )
+                        )
+
+                        minutes_since = (
+                            board_now
+                            - last_alert
+                        ).total_seconds() / 60
+
+                        if (
+                            minutes_since
+                            < ALERT_COOLDOWN_MINUTES
+                        ):
+                            cooldown_ok = False
+
+                            log(
+                                group_number,
+                                (
+                                    "cooldown skip "
+                                    f"minutes_since="
+                                    f"{minutes_since:.1f}"
+                                ),
+                            )
+
+                    except Exception as error:
+                        log(
+                            group_number,
+                            (
+                                "cooldown state "
+                                f"error: {error}"
+                            ),
+                        )
+
+                if (
+                    should_alert
+                    and cooldown_ok
+                ):
+                    notification_sent = (
+                        send_ifttt(
+                            name=name,
+                            code=code,
+                            url=url,
+                            last5=last5,
+                            prev5=prev5,
+                            surge=surge,
+                            market_open=(
+                                board_market_open
+                            ),
+                            group_number=(
+                                group_number
+                            ),
+                        )
+                    )
+
+                    # IFTTT送信成功時だけ
+                    # クールダウン開始時刻を保存
+                    if notification_sent:
+                        alert_updates[code] = (
+                            board_now.isoformat()
+                        )
+
+                        alerted += 1
+
+                checked += 1
+
+            except Exception as error:
+                log(
+                    group_number,
+                    f"error: {error}",
+                )
+
+                failed += 1
+
+            # 最後の銘柄の後は待たない
+            if index < len(boards):
+                time.sleep(
+                    random.uniform(
+                        MIN_SLEEP_SEC,
+                        MAX_SLEEP_SEC,
+                    )
+                )
+
+    finally:
+        session.close()
+
+    log(
+        group_number,
+        (
+            "group finished "
+            f"checked={checked} "
+            f"failed={failed} "
+            f"alerted={alerted}"
+        ),
+    )
+
+    return {
+        "group": group_number,
+        "boards": len(boards),
+        "checked": checked,
+        "failed": failed,
+        "alerted": alerted,
+        "alert_updates": (
+            alert_updates
+        ),
+    }
+
+
+def main():
+    validate_boards()
+
+    started_at = datetime.now(
+        JST
     )
 
     print(
-        f"boards={len(BOARDS)} "
-        f"surge_threshold={SURGE_THRESHOLD}"
+        (
+            "start "
+            f"now={started_at.isoformat()} "
+            f"total_boards={len(ALL_BOARDS)} "
+            f"group1={len(BOARD_GROUPS[0])} "
+            f"group2={len(BOARD_GROUPS[1])} "
+            f"surge_threshold="
+            f"{SURGE_THRESHOLD}"
+        ),
+        flush=True,
     )
 
     state = load_state()
@@ -508,134 +886,143 @@ def main():
         {},
     )
 
-    checked = 0
-    failed = 0
-    alerted = 0
+    # スレッド実行中にstateを書き換えないよう、
+    # 通知履歴のコピーを各グループへ渡す
+    alerts_snapshot = dict(
+        alerts
+    )
 
-    for board in BOARDS:
-        name = board["name"]
-        code = board["code"]
-        url = board["url"]
+    group_results = []
 
-        print(
-            f"\n{name} {code}"
-        )
-
-        try:
-            html = fetch_html(url)
-
-            post_dates = extract_post_dates(
-                html,
-                now,
+    # 2グループを同時並行で実行
+    with ThreadPoolExecutor(
+        max_workers=GROUP_COUNT
+    ) as executor:
+        futures = [
+            executor.submit(
+                process_group,
+                group_number,
+                boards,
+                alerts_snapshot,
             )
+            for group_number, boards
+            in enumerate(
+                BOARD_GROUPS,
+                start=1,
+            )
+        ]
 
-            if not post_dates:
+        for future in as_completed(
+            futures
+        ):
+            try:
+                result = future.result()
+                group_results.append(
+                    result
+                )
+
+            except Exception as error:
                 print(
-                    "  post date not found"
+                    (
+                        "group execution "
+                        f"error: {error}"
+                    ),
+                    flush=True,
                 )
 
-                failed += 1
-                continue
+    total_checked = 0
+    total_failed = 0
+    total_alerted = 0
 
-            (
-                should_alert,
-                last5,
-                prev5,
-                surge,
-            ) = judge_spike(
-                post_dates,
-                now,
-            )
+    # 各グループの結果をstateへ反映
+    for result in group_results:
+        total_checked += result[
+            "checked"
+        ]
 
-            print(
-                f"  dates={len(post_dates)} "
-                f"last5={last5} "
-                f"prev5={prev5} "
-                f"surge={surge:+d} "
-                f"should_alert={should_alert}"
-            )
+        total_failed += result[
+            "failed"
+        ]
 
-            last_alert_iso = alerts.get(code)
-            cooldown_ok = True
+        total_alerted += result[
+            "alerted"
+        ]
 
-            if last_alert_iso:
-                try:
-                    last_alert = datetime.fromisoformat(
-                        last_alert_iso
-                    )
-
-                    minutes_since = (
-                        now - last_alert
-                    ).total_seconds() / 60
-
-                    if (
-                        minutes_since
-                        < ALERT_COOLDOWN_MINUTES
-                    ):
-                        cooldown_ok = False
-
-                        print(
-                            "  cooldown skip "
-                            f"minutes_since="
-                            f"{minutes_since:.1f}"
-                        )
-
-                except Exception as e:
-                    print(
-                        "  cooldown state error: "
-                        f"{e}"
-                    )
-
-            if should_alert and cooldown_ok:
-                notification_sent = send_ifttt(
-                    name=name,
-                    code=code,
-                    url=url,
-                    last5=last5,
-                    prev5=prev5,
-                    surge=surge,
-                    market_open=market_open,
-                )
-
-                # IFTTT送信成功時だけクールダウンを開始
-                if notification_sent:
-                    alerts[code] = now.isoformat()
-                    alerted += 1
-
-            checked += 1
-
-        except Exception as e:
-            print(
-                f"  error: {e}"
-            )
-
-            failed += 1
-
-        time.sleep(
-            random.uniform(
-                MIN_SLEEP_SEC,
-                MAX_SLEEP_SEC,
-            )
+        alerts.update(
+            result["alert_updates"]
         )
 
-    state["last_run"] = now.isoformat()
+    finished_at = datetime.now(
+        JST
+    )
+
+    elapsed_seconds = (
+        finished_at - started_at
+    ).total_seconds()
+
+    state["last_run"] = (
+        finished_at.isoformat()
+    )
 
     state["last_result"] = {
-        "checked": checked,
-        "failed": failed,
-        "alerted": alerted,
-        "market_open": market_open,
-        "surge_threshold": SURGE_THRESHOLD,
+        "total_boards": len(
+            ALL_BOARDS
+        ),
+        "checked": total_checked,
+        "failed": total_failed,
+        "alerted": total_alerted,
+        "surge_threshold": (
+            SURGE_THRESHOLD
+        ),
+        "elapsed_seconds": round(
+            elapsed_seconds,
+            1,
+        ),
+        "groups": [
+            {
+                "group": result[
+                    "group"
+                ],
+                "boards": result[
+                    "boards"
+                ],
+                "checked": result[
+                    "checked"
+                ],
+                "failed": result[
+                    "failed"
+                ],
+                "alerted": result[
+                    "alerted"
+                ],
+            }
+            for result in sorted(
+                group_results,
+                key=lambda item: item[
+                    "group"
+                ],
+            )
+        ],
     }
 
-    save_state(state)
-
-    print("\nfinished")
+    save_state(
+        state
+    )
 
     print(
-        f"checked={checked} "
-        f"failed={failed} "
-        f"alerted={alerted}"
+        "\nfinished",
+        flush=True,
+    )
+
+    print(
+        (
+            f"checked={total_checked} "
+            f"failed={total_failed} "
+            f"alerted={total_alerted} "
+            f"elapsed_seconds="
+            f"{elapsed_seconds:.1f}"
+        ),
+        flush=True,
     )
 
 
