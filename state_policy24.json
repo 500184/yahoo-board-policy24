@@ -49,8 +49,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:52:24+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:25+09:00"
     },
     "4488": {
       "name": "AI inside",
@@ -100,8 +100,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:52:31+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:27+09:00"
     },
     "5572": {
       "name": "Ridge-i",
@@ -152,8 +152,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:52:38+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:30+09:00"
     },
     "4418": {
       "name": "JDSC",
@@ -204,8 +204,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:52:46+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:34+09:00"
     },
     "4011": {
       "name": "ヘッドウォータース",
@@ -255,8 +255,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:52:53+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:37+09:00"
     },
     "3687": {
       "name": "フィックスターズ",
@@ -306,8 +306,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:00+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:40+09:00"
     },
     "3778": {
       "name": "さくらインターネット",
@@ -315,85 +315,85 @@
       "url": "https://finance.yahoo.co.jp/quote/3778.T/forum",
       "seen_post_ids": [
         "81972e10cdf11001",
-        "5a4cf4a9f7b15382",
-        "826072718dd185d6",
-        "f6a3721d3f847784",
-        "e04c9a03ef3e443d",
-        "666bc32b39333e88",
-        "3be5d560a68e8663",
-        "ebb69aa9a8385aad",
-        "1fcb4686c9a58b38",
-        "d8d84c5d7b15a796",
-        "034558c4e9aad90f",
+        "7e60ef9f77ef82f2",
+        "3f3938278c16bb03",
+        "9e2bbe4d082fa789",
+        "80d2056478e32fcc",
+        "052ab19c2be3bedd",
         "86ef35329e228de8",
-        "c87cb04c54c64e3e",
-        "2c44770893650e73",
-        "c6319f6bc41088d1",
-        "e18697a0103b235b",
+        "a7ba88c73cdbd825",
+        "de6c6fec033f156a",
+        "297801015eaf1676",
         "4c6e9112081907ae",
-        "73199e7f8bc89e1a",
-        "8b10d72e9b7bd06e",
-        "dc93c2d747b6aec0",
-        "5f52959506c61b57",
-        "8bcc37a3b018c470",
-        "8b46361e43b0bfca",
-        "10dcab7f973a8583",
         "6290765d4622022d",
         "64a99dbc5a0eeb02",
-        "f73ec4021c0934e5",
-        "91ee57eae7095f3c",
+        "666bc32b39333e88",
+        "1fcb4686c9a58b38",
+        "fd2b092287b44686",
+        "86f59eb9c53ae509",
+        "20cfce7fbe830786",
+        "c6319f6bc41088d1",
+        "f6a3721d3f847784",
         "cd97dc294092db51",
-        "22d3c3bb31371a44",
-        "3f3938278c16bb03",
-        "0fe01849889943ff",
         "578379c5954da6f1",
-        "7e60ef9f77ef82f2",
-        "5e51db3ade33ead8",
+        "7e6eaee686e31b4a",
+        "c7ec547a74bb6c99",
+        "e18697a0103b235b",
+        "5a4cf4a9f7b15382",
+        "0fe01849889943ff",
+        "c197d82c355b5f20",
+        "5aff74f2d9746f30",
+        "2c44770893650e73",
+        "d8d84c5d7b15a796",
+        "c87cb04c54c64e3e",
+        "10dcab7f973a8583",
+        "a472d733f1288fe8",
+        "e8435ec3ce7efa67",
+        "826072718dd185d6",
+        "61f4becfdb34bc2a",
         "29806d90d3463b6e",
-        "052ab19c2be3bedd",
-        "297801015eaf1676",
+        "8b46361e43b0bfca",
+        "e473391ed2b2ac7a",
+        "158e5f13e7b09cc3",
+        "aa194d113e1880a4",
+        "4c8a0134f86c15ea",
+        "038d72eb218c19aa",
+        "beb68a7cd3333b87",
+        "73199e7f8bc89e1a",
+        "034558c4e9aad90f",
+        "d9122fd5918aba63",
+        "feeb678e32c5b33b",
+        "3be5d560a68e8663",
+        "8b10d72e9b7bd06e",
+        "92aa03960da73382",
+        "91ee57eae7095f3c",
+        "5e51db3ade33ead8",
+        "f188ad3867a4658a",
+        "4f1d634a77e2d46d",
+        "8bcc37a3b018c470",
+        "c98b15ab802065a2",
+        "6e7663e810335de8",
+        "22d3c3bb31371a44",
+        "e04c9a03ef3e443d",
         "4afc7276dc607d97",
         "4c81250edc7a27a0",
-        "fd2b092287b44686",
-        "aa194d113e1880a4",
-        "d9122fd5918aba63",
         "4d626bb60fdc717b",
-        "7e6eaee686e31b4a",
-        "1f08983a2ee5dd92",
-        "beb68a7cd3333b87",
-        "5161a1b015b41317",
-        "86f59eb9c53ae509",
-        "4c8a0134f86c15ea",
-        "a472d733f1288fe8",
-        "6e7663e810335de8",
-        "e473391ed2b2ac7a",
-        "20cfce7fbe830786",
-        "dc628ca974b13f8f",
-        "c7ec547a74bb6c99",
-        "69300ad00371237a",
-        "a7ba88c73cdbd825",
-        "c98b15ab802065a2",
-        "61f4becfdb34bc2a",
         "5b2333c7112181ea",
-        "c197d82c355b5f20",
-        "9e2bbe4d082fa789",
-        "4f1d634a77e2d46d",
-        "feeb678e32c5b33b",
+        "ebb69aa9a8385aad",
+        "dc628ca974b13f8f",
         "18bbcfe0f5d0035a",
-        "f188ad3867a4658a",
-        "158e5f13e7b09cc3",
-        "5aff74f2d9746f30",
-        "e8435ec3ce7efa67",
+        "69300ad00371237a",
         "c183e12abc4c0ba3",
-        "80d2056478e32fcc",
-        "92aa03960da73382",
-        "038d72eb218c19aa",
-        "de6c6fec033f156a"
+        "dc93c2d747b6aec0",
+        "5161a1b015b41317",
+        "5f52959506c61b57",
+        "f73ec4021c0934e5",
+        "1f08983a2ee5dd92"
       ],
       "last_seen_count_on_page": 1,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:08+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:43+09:00"
     },
     "278A": {
       "name": "Terra Drone",
@@ -441,13 +441,13 @@
         "30c2f8fd7b10c9ec",
         "2770c6a0f116d49d",
         "32e4ab5ccf27d2b1",
-        "072394c083541a94",
-        "209106cf0ea3bb01"
+        "209106cf0ea3bb01",
+        "072394c083541a94"
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:15+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:47+09:00"
     },
     "6232": {
       "name": "ACSL",
@@ -497,8 +497,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:23+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:50+09:00"
     },
     "5597": {
       "name": "ブルーイノベーション",
@@ -550,8 +550,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:30+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:53+09:00"
     },
     "218A": {
       "name": "Liberaware",
@@ -601,8 +601,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:38+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:55+09:00"
     },
     "186A": {
       "name": "アストロスケールHD",
@@ -610,51 +610,51 @@
       "url": "https://finance.yahoo.co.jp/quote/186A.T/forum",
       "seen_post_ids": [
         "f8637d31a68e4a18",
-        "611afbc5226e9a3c",
-        "fbdc14ead5498bf1",
-        "2f97defce17cf2e6",
-        "36e1272122d8dce6",
-        "483e2c90eaa39f13",
-        "55caf24cc555e3ac",
-        "ead4919b473dd020",
-        "5b6e6fd657716ff2",
-        "54bdff755e8ab373",
-        "63e0272507ab2bb4",
-        "2c4c3fd3a528ce0b",
-        "8b46e5cf47965c37",
+        "616a67ffe00f1aaf",
         "5b7c075f20df671d",
         "21101c21ac691391",
-        "9d585e315b0aef86",
-        "2406eb32e81391ec",
-        "ed46def9877eeff1",
-        "75a18a1411c8979b",
+        "fbdc14ead5498bf1",
         "0e3a7a9bd4d7fe1d",
-        "72d96e33a1cfff54",
-        "b8d4836fa4fcc5b7",
-        "954a42a91f025dcc",
-        "f5103756e83df1bc",
-        "06be807b999b171c",
-        "ddd298295c70abd4",
-        "e68ad775449d5d63",
-        "7fd064ce9c2e815d",
-        "70edfd89c2ce5064",
-        "76f5acdeae9c3994",
-        "616a67ffe00f1aaf",
-        "0d59dd76dee68457",
-        "88ebca58c4bf1be5",
-        "84322cd8ae063db3",
-        "e29c9e08a8fc6e11",
         "d8f956f4910d536e",
-        "c183304180c79f33",
+        "7fd064ce9c2e815d",
+        "ed46def9877eeff1",
         "c1b61de94c5ab708",
-        "b5b629cbdac12879",
+        "8b46e5cf47965c37",
+        "e29c9e08a8fc6e11",
+        "954a42a91f025dcc",
+        "88ebca58c4bf1be5",
+        "5b6e6fd657716ff2",
+        "72d96e33a1cfff54",
+        "d29bebfd35e654cf",
+        "2406eb32e81391ec",
+        "c183304180c79f33",
+        "36e1272122d8dce6",
+        "e68ad775449d5d63",
+        "ddd298295c70abd4",
+        "70edfd89c2ce5064",
+        "75a18a1411c8979b",
+        "483e2c90eaa39f13",
+        "63e0272507ab2bb4",
+        "55caf24cc555e3ac",
+        "0d59dd76dee68457",
+        "06be807b999b171c",
+        "b8d4836fa4fcc5b7",
+        "2f97defce17cf2e6",
         "b2397c130cf394bd",
-        "d29bebfd35e654cf"
+        "54bdff755e8ab373",
+        "f5103756e83df1bc",
+        "2c4c3fd3a528ce0b",
+        "76f5acdeae9c3994",
+        "611afbc5226e9a3c",
+        "b5b629cbdac12879",
+        "9d585e315b0aef86",
+        "ead4919b473dd020",
+        "84322cd8ae063db3"
       ],
       "last_seen_count_on_page": 1,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:45+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:02:59+09:00"
     },
     "9348": {
       "name": "ispace",
@@ -704,8 +704,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:52+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:01+09:00"
     },
     "464A": {
       "name": "QPSホールディングス",
@@ -755,8 +755,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:53:59+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:04+09:00"
     },
     "7721": {
       "name": "東京計器",
@@ -806,8 +806,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:54:06+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:07+09:00"
     },
     "6946": {
       "name": "日本アビオニクス",
@@ -858,8 +858,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:54:14+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:10+09:00"
     },
     "6864": {
       "name": "エヌエフHD",
@@ -910,8 +910,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:54:21+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:13+09:00"
     },
     "6521": {
       "name": "オキサイド",
@@ -961,8 +961,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:54:29+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:16+09:00"
     },
     "3692": {
       "name": "FFRIセキュリティ",
@@ -1012,8 +1012,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:54:36+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:19+09:00"
     },
     "4493": {
       "name": "サイバーセキュリティクラウド",
@@ -1063,8 +1063,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:54:43+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:22+09:00"
     },
     "4417": {
       "name": "グローバルセキュリティエキスパート",
@@ -1115,8 +1115,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:54:50+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:25+09:00"
     },
     "4398": {
       "name": "ブロードバンドセキュリティ",
@@ -1163,16 +1163,16 @@
         "f56cdc687e1018d2",
         "7eb336abec48541d",
         "7c7647580c2fe5af",
-        "db41a5e321100b53",
-        "63d6971093b8c7e4",
+        "eae9066145db5db5",
         "2d8a68cb9eb6a92c",
         "29909f3ebfb046df",
-        "eae9066145db5db5"
+        "63d6971093b8c7e4",
+        "db41a5e321100b53"
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:54:57+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:27+09:00"
     },
     "3042": {
       "name": "セキュアヴェイル",
@@ -1222,8 +1222,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": "HTTP 500",
-      "updated_at": "2026-07-16T08:55:04+09:00"
+      "last_error": null,
+      "updated_at": "2026-07-16T09:03:30+09:00"
     },
     "2326": {
       "name": "デジタルアーツ",
@@ -1274,7 +1274,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-16T08:55:07+09:00"
+      "updated_at": "2026-07-16T09:03:33+09:00"
     },
     "290A": {
       "name": "Synspective",
@@ -1325,7 +1325,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-16T08:55:10+09:00"
+      "updated_at": "2026-07-16T09:03:36+09:00"
     },
     "3040": {
       "name": "ソリトンシステムズ",
@@ -1376,7 +1376,7 @@
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
       "last_error": null,
-      "updated_at": "2026-07-16T08:55:14+09:00"
+      "updated_at": "2026-07-16T09:03:39+09:00"
     },
     "5582": {
       "name": "グリッド",
@@ -1426,8 +1426,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": null,
-      "updated_at": "2026-07-16T08:55:17+09:00"
+      "last_error": "HTTP 500",
+      "updated_at": "2026-07-16T09:03:46+09:00"
     },
     "5586": {
       "name": "Laboro.AI",
@@ -1477,8 +1477,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": null,
-      "updated_at": "2026-07-16T08:55:20+09:00"
+      "last_error": "HTTP 500",
+      "updated_at": "2026-07-16T09:03:52+09:00"
     },
     "135A": {
       "name": "VRAIN Solution",
@@ -1529,8 +1529,8 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": null,
-      "updated_at": "2026-07-16T08:55:23+09:00"
+      "last_error": "HTTP 500",
+      "updated_at": "2026-07-16T09:03:59+09:00"
     },
     "4055": {
       "name": "ティアンドエスグループ",
@@ -1581,9 +1581,9 @@
       ],
       "last_seen_count_on_page": 40,
       "last_new_count": 0,
-      "last_error": null,
-      "updated_at": "2026-07-16T08:55:26+09:00"
+      "last_error": "HTTP 500",
+      "updated_at": "2026-07-16T09:04:06+09:00"
     }
   },
-  "updated_at": "2026-07-16T08:55:28+09:00"
+  "updated_at": "2026-07-16T09:04:08+09:00"
 }
