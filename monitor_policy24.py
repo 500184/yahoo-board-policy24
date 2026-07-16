@@ -16,7 +16,7 @@ STATE_PATH = "data/state.json"
 IFTTT_KEY = os.environ.get("IFTTT_KEY", "")
 IFTTT_EVENT = os.environ.get("IFTTT_EVENT", "yahoo_board_spike")
 
-# 直近5分の投稿数が、その前の5分より何件増えたら通知するか
+# 直近5分の投稿数が、その前の5分より5件以上増えたら通知
 SURGE_THRESHOLD = 5
 
 # 同じ銘柄の重複通知を防ぐ時間
@@ -28,7 +28,7 @@ MAX_SLEEP_SEC = 3.5
 
 
 # ============================================================
-# 監視銘柄
+# 監視銘柄：24銘柄
 # ============================================================
 
 BOARDS = [
@@ -112,7 +112,9 @@ BOARDS = [
         "code": "6769",
         "url": "https://finance.yahoo.co.jp/quote/6769.T/forum",
     },
-        {
+
+    # 追加8銘柄
+    {
         "name": "IMV",
         "code": "7760",
         "url": "https://finance.yahoo.co.jp/quote/7760.T/forum",
@@ -158,7 +160,6 @@ BOARDS = [
 def load_state():
     """
     前回までの通知時刻などを読み込む。
-    状態ファイルが存在しない場合や壊れている場合は空で開始する。
     """
     if not os.path.exists(STATE_PATH):
         return {}
@@ -179,7 +180,7 @@ def load_state():
 
 def save_state(state):
     """
-    通知時刻や最終実行結果を状態ファイルへ保存する。
+    通知時刻や最終実行結果を保存する。
     """
     state_dir = os.path.dirname(STATE_PATH)
 
@@ -202,9 +203,7 @@ def save_state(state):
 def is_market_open(now):
     """
     日本株の市場時間内か判定する。
-
-    土日は市場時間外。
-    祝日判定には未対応。
+    土日は市場時間外。祝日は未対応。
     """
     if now.weekday() >= 5:
         return False
@@ -226,8 +225,7 @@ def is_market_open(now):
 def fetch_html(url):
     """
     Yahooファイナンス掲示板のHTMLを取得する。
-
-    一時的なアクセスエラーに備えて最大3回試す。
+    一時的なエラーに備え、最大3回試行する。
     """
     headers = {
         "User-Agent": (
@@ -274,7 +272,6 @@ def fetch_html(url):
                 f"attempt={attempt + 1}: {e}"
             )
 
-        # 失敗した場合は少し待ってから再試行
         time.sleep(3 + attempt * 3)
 
     raise RuntimeError(
@@ -284,7 +281,7 @@ def fetch_html(url):
 
 def html_to_text(html):
     """
-    HTMLからスクリプトやスタイルを除き、画面上の文章へ変換する。
+    HTMLからscript、styleなどを削除し、表示テキストに変換する。
     """
     soup = BeautifulSoup(
         html,
@@ -315,8 +312,10 @@ def extract_post_dates(html, now):
     """
     掲示板ページから投稿日時を抽出する。
 
-    同じ分に複数の投稿があった場合も、
-    それぞれ別の投稿として数える。
+    直近20分より古い投稿も除外しない。
+    直近10分に投稿がない銘柄でも、正常に0件判定できるようにする。
+
+    同じ分に複数の投稿がある場合は、それぞれ別投稿として数える。
     """
     text = html_to_text(html)
 
@@ -336,8 +335,6 @@ def extract_post_dates(html, now):
             )
         )
 
-        # 日付形式は通常いずれか1種類なので、
-        # 投稿日時を見つけた形式だけを採用する
         if not matches:
             continue
 
@@ -360,17 +357,16 @@ def extract_post_dates(html, now):
             except (ValueError, TypeError):
                 continue
 
-            # 未来の日時は誤取得として除外
+            # 現在時刻より未来の日時は誤取得として除外
             if post_datetime > now + timedelta(minutes=1):
                 continue
 
-            # 古すぎる投稿は今回の判定には不要
-            if post_datetime < now - timedelta(minutes=20):
-                continue
-
+            # 古い投稿も残す
+            # judge_spike側で直近10分だけを判定する
             results.append(post_datetime)
 
-        # 複数の日付形式による重複カウントを防ぐ
+        # Yahoo掲示板では通常いずれか1種類の日付形式なので、
+        # 最初に見つかった形式だけを使用する
         if results:
             break
 
@@ -383,10 +379,11 @@ def judge_spike(post_dates, now):
     """
     直近5分と、その前の5分の投稿数を比較する。
 
-    例:
+    例：
     直近5分 8件
     前の5分 3件
-    差は+5件なので通知対象。
+    差 +5件
+    → 通知対象
     """
     last5 = 0
     prev5 = 0
@@ -401,6 +398,11 @@ def judge_spike(post_dates, now):
 
         elif 5 <= diff_minutes < 10:
             prev5 += 1
+
+        # 新しい順に並んでいるため、
+        # 10分以上前になったら以降の確認は不要
+        elif diff_minutes >= 10:
+            break
 
     surge = last5 - prev5
 
@@ -447,9 +449,7 @@ def send_ifttt(
     )
 
     payload = {
-        "value1": (
-            f"{name} 掲示板急増"
-        ),
+        "value1": f"{name} 掲示板急増",
         "value2": (
             f"{mode} / {code} / "
             f"直近5分:{last5}件"
@@ -484,7 +484,6 @@ def send_ifttt(
         print(
             f"  IFTTT error: {e}"
         )
-
         return False
 
 
@@ -598,8 +597,7 @@ def main():
                     market_open=market_open,
                 )
 
-                # IFTTT送信が成功した場合だけ
-                # クールダウン開始時刻を保存する
+                # IFTTT送信成功時だけクールダウンを開始
                 if notification_sent:
                     alerts[code] = now.isoformat()
                     alerted += 1
