@@ -20,335 +20,665 @@ from bs4 import BeautifulSoup
 
 
 JST = timezone(timedelta(hours=9))
-STATE_PATH = Path("state_policy24.json")
 
-# ===== 設定 =====
-MAX_POSTS_PER_STOCK = int(os.getenv("MAX_POSTS_PER_STOCK", "40"))
+# 前回取得した投稿IDを保存するファイル
+STATE_PATH = Path(
+    os.getenv(
+        "STATE_PATH",
+        "state_yahoo_board_5min.json",
+    )
+)
 
-# エラーを減らすため、銘柄ごとに2秒あける
-REQUEST_INTERVAL_SEC = float(os.getenv("REQUEST_INTERVAL_SEC", "2.0"))
 
-# 新規投稿がこの件数以上 + 弱キーワードありなら通知
-POST_SPIKE_THRESHOLD = int(os.getenv("POST_SPIKE_THRESHOLD", "5"))
+# ============================================================
+# 設定
+# ============================================================
 
-# キーワードなしでも、新規投稿がこの件数以上なら通知
-POST_SPIKE_ONLY_THRESHOLD = int(os.getenv("POST_SPIKE_ONLY_THRESHOLD", "8"))
-ALERT_POST_SPIKE_ONLY = os.getenv("ALERT_POST_SPIKE_ONLY", "true").lower() == "true"
+# 1銘柄につき取得する最大投稿数
+MAX_POSTS_PER_STOCK = int(
+    os.getenv(
+        "MAX_POSTS_PER_STOCK",
+        "60",
+    )
+)
 
-# 初回は大量通知を避けるため通知しない
-ALERT_ON_FIRST_RUN = os.getenv("ALERT_ON_FIRST_RUN", "false").lower() == "true"
+# 銘柄ごとのアクセス間隔
+REQUEST_INTERVAL_SEC = float(
+    os.getenv(
+        "REQUEST_INTERVAL_SEC",
+        "2.0",
+    )
+)
 
-IFTTT_WEBHOOK_KEY = os.getenv("IFTTT_WEBHOOK_KEY") or ""
-IFTTT_EVENT_NAME = os.getenv("IFTTT_EVENT_NAME") or "yahoo_board_spike"
+# 前回実行時より新しい投稿が5件以上なら通知
+NEW_POST_THRESHOLD = int(
+    os.getenv(
+        "NEW_POST_THRESHOLD",
+        "5",
+    )
+)
+
+# 初回実行では通知せず、現在の投稿を基準として保存する
+ALERT_ON_FIRST_RUN = (
+    os.getenv(
+        "ALERT_ON_FIRST_RUN",
+        "false",
+    ).strip().lower()
+    == "true"
+)
+
+# IFTTT設定
+# IFTTT_WEBHOOK_KEY、IFTTT_KEYのどちらでも動作
+IFTTT_WEBHOOK_KEY = (
+    os.getenv("IFTTT_WEBHOOK_KEY")
+    or os.getenv("IFTTT_KEY")
+    or ""
+)
+
+# IFTTT_EVENT_NAME、IFTTT_EVENTのどちらでも動作
+IFTTT_EVENT_NAME = (
+    os.getenv("IFTTT_EVENT_NAME")
+    or os.getenv("IFTTT_EVENT")
+    or "yahoo_board_spike"
+)
 
 USER_AGENT = os.getenv(
     "USER_AGENT",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
-    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 "
+    "(iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+    "AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) "
+    "Version/17.0 Mobile/15E148 Safari/604.1",
 )
 
 HEADERS = {
     "User-Agent": USER_AGENT,
     "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept": (
+        "text/html,application/xhtml+xml,"
+        "application/xml;q=0.9,*/*;q=0.8"
+    ),
     "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
 }
 
 
-# ===== 監視銘柄 24銘柄 =====
-# GX、医療機器、ゲーム株は除外。
-# QPSは旧5595ではなく、464A QPSホールディングスを監視。
+# ============================================================
+# 監視銘柄
+# ============================================================
+
 WATCHLIST: List[Dict[str, str]] = [
-    # 国策AI・NEDO・GENIAC系
-    {"code": "5574", "name": "ABEJA", "theme": "国策AI/NEDO"},
-    {"code": "4488", "name": "AI inside", "theme": "国策AI/NEDO"},
-    {"code": "5572", "name": "Ridge-i", "theme": "国策AI/NEDO"},
-    {"code": "4418", "name": "JDSC", "theme": "国策AI/NEDO"},
-    {"code": "4011", "name": "ヘッドウォータース", "theme": "国策AI/量子"},
-    {"code": "3687", "name": "フィックスターズ", "theme": "国策AI/量子"},
-    {"code": "3778", "name": "さくらインターネット", "theme": "AI計算資源"},
-
-    # 防衛・ドローン・宇宙系
-    {"code": "278A", "name": "Terra Drone", "theme": "防衛/ドローン"},
-    {"code": "6232", "name": "ACSL", "theme": "防衛/ドローン"},
-    {"code": "5597", "name": "ブルーイノベーション", "theme": "ドローン"},
-    {"code": "218A", "name": "Liberaware", "theme": "ドローン/国交省"},
-    {"code": "186A", "name": "アストロスケールHD", "theme": "宇宙/JAXA"},
-    {"code": "9348", "name": "ispace", "theme": "宇宙/JAXA"},
-    {"code": "464A", "name": "QPSホールディングス", "theme": "宇宙/衛星"},
-    {"code": "7721", "name": "東京計器", "theme": "防衛/計測"},
-    {"code": "6946", "name": "日本アビオニクス", "theme": "防衛/赤外線"},
-
-    # 量子系
-    {"code": "6864", "name": "エヌエフHD", "theme": "量子"},
-    {"code": "6521", "name": "オキサイド", "theme": "量子"},
-
-    # 官公庁サイバー系
-    {"code": "3692", "name": "FFRIセキュリティ", "theme": "官公庁サイバー"},
-    {"code": "4493", "name": "サイバーセキュリティクラウド", "theme": "サイバー"},
-    {"code": "4417", "name": "グローバルセキュリティエキスパート", "theme": "サイバー"},
-    {"code": "4398", "name": "ブロードバンドセキュリティ", "theme": "サイバー"},
-    {"code": "3042", "name": "セキュアヴェイル", "theme": "サイバー"},
-    {"code": "2326", "name": "デジタルアーツ", "theme": "官公庁サイバー"},
-    
-        # 追加候補：宇宙・量子・AI・官公庁サイバー
-    {"code": "290A", "name": "Synspective", "theme": "宇宙/JAXA"},
-    {"code": "3040", "name": "ソリトンシステムズ", "theme": "官公庁サイバー"},
-    {"code": "5582", "name": "グリッド", "theme": "量子/NEDO"},
-    {"code": "5586", "name": "Laboro.AI", "theme": "国策AI"},
-    {"code": "135A", "name": "VRAIN Solution", "theme": "製造AI/AIロボ"},
-    {"code": "4055", "name": "ティアンドエスグループ", "theme": "AI/半導体"},
+    {
+        "code": "6209",
+        "name": "リケンNPR",
+    },
+    {
+        "code": "464A",
+        "name": "QPSホールディングス",
+    },
+    {
+        "code": "186A",
+        "name": "アストロスケールHD",
+    },
+    {
+        "code": "278A",
+        "name": "Terra Drone",
+    },
+    {
+        "code": "3656",
+        "name": "KLab",
+    },
+    {
+        "code": "3903",
+        "name": "gumi",
+    },
+    {
+        "code": "4199",
+        "name": "ワンダープラネット",
+    },
+    {
+        "code": "6016",
+        "name": "ジャパンエンジンコーポレーション",
+    },
+    {
+        "code": "5246",
+        "name": "ELEMENTS",
+    },
+    {
+        "code": "3877",
+        "name": "中越パルプ工業",
+    },
+    {
+        "code": "6508",
+        "name": "明電舎",
+    },
+    {
+        "code": "7004",
+        "name": "カナデビア",
+    },
+    {
+        "code": "4114",
+        "name": "日本触媒",
+    },
+    {
+        "code": "5915",
+        "name": "駒井ハルテック",
+    },
+    {
+        "code": "6232",
+        "name": "ACSL",
+    },
+    {
+        "code": "6769",
+        "name": "ザインエレクトロニクス",
+    },
 ]
 
 
-# 強キーワード：1件でも通知
-STRONG_KEYWORDS = [
-    "NEDO", "ＧＥＮＩＡＣ", "GENIAC", "SBIR", "ＳＢＩＲ",
-    "SIP", "ＳＩＰ", "JST", "ＪＳＴ",
-    "JAXA", "ＪＡＸＡ", "宇宙戦略基金",
-    "防衛装備庁", "防衛省", "国交省", "経産省", "総務省", "デジタル庁",
-    "採択", "交付決定", "受注", "落札", "契約", "委託", "選定", "公募結果",
-    "官公庁", "自治体", "政府調達",
-    "量子暗号", "ポスト量子暗号", "PQC", "ＰＱＣ",
-    "能動的サイバー防御", "ゼロトラスト", "SBOM", "ＳＢＯＭ",
-    "認定", "採用",
-]
-
-# 弱キーワード：投稿数急増とセットなら通知
-WEAK_KEYWORDS = [
-    "AI", "ＡＩ", "生成AI", "生成ＡＩ", "計算資源", "GPU", "ＧＰＵ",
-    "ドローン", "無人機", "UAV", "ＵＡＶ",
-    "衛星", "宇宙", "量子", "サイバー",
-    "導入", "共同研究", "実証", "補助金", "大型案件",
-    "ランサムウェア", "不正アクセス", "情報漏えい", "脆弱性",
-]
-
+# Yahoo掲示板の投稿本文ではない可能性が高い文章
 IGNORE_TEXT_PATTERNS = [
-    "Yahoo!ファイナンス", "Yahooファイナンス", "利用規約", "プライバシー",
-    "ログイン", "新規登録", "掲示板", "株式ランキング", "みんなの評価",
-    "投稿する", "返信する", "違反報告", "ポートフォリオ",
+    "Yahoo!ファイナンス",
+    "Yahooファイナンス",
+    "利用規約",
+    "プライバシー",
+    "ログイン",
+    "新規登録",
+    "株式ランキング",
+    "みんなの評価",
+    "投稿する",
+    "返信する",
+    "違反報告",
+    "ポートフォリオ",
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Post:
     post_id: str
     text: str
 
 
 def now_jst_iso() -> str:
+    """現在の日本時間をISO形式で返す。"""
     return datetime.now(JST).isoformat(timespec="seconds")
 
 
 def board_url(code: str) -> str:
+    """Yahooファイナンス掲示板のURLを作る。"""
     return f"https://finance.yahoo.co.jp/quote/{code}.T/forum"
 
 
 def normalize_text(text: str) -> str:
+    """HTMLエスケープや余分な空白を整理する。"""
     text = html.unescape(text or "")
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 
 def looks_like_post_text(text: str) -> bool:
+    """掲示板の投稿本文らしい文章か判定する。"""
     if not text:
         return False
-    if len(text) < 5 or len(text) > 1200:
+
+    if len(text) < 5:
         return False
-    if any(p in text for p in IGNORE_TEXT_PATTERNS):
+
+    if len(text) > 1200:
         return False
-    if not re.search(r"[ぁ-んァ-ヶ一-龠ーA-Za-z0-9]", text):
+
+    if any(
+        pattern in text
+        for pattern in IGNORE_TEXT_PATTERNS
+    ):
         return False
+
+    if not re.search(
+        r"[ぁ-んァ-ヶ一-龠ーA-Za-z0-9]",
+        text,
+    ):
+        return False
+
     return True
 
 
-def make_post_id(code: str, text: str, extra: str = "") -> str:
-    src = f"{code}|{extra}|{normalize_text(text)[:600]}"
-    return hashlib.sha1(src.encode("utf-8", errors="ignore")).hexdigest()[:16]
+def sha1_short(value: str) -> str:
+    """短いハッシュ値を作る。"""
+    return hashlib.sha1(
+        value.encode(
+            "utf-8",
+            errors="ignore",
+        )
+    ).hexdigest()[:20]
 
 
-def iter_json_values(obj: Any) -> Iterable[Any]:
+def make_post_id(
+    code: str,
+    text: str,
+    stable_id: str = "",
+) -> str:
+    """
+    投稿IDを作る。
+
+    Yahoo側の投稿IDが取得できた場合はそのIDを使用。
+    取得できなかった場合は投稿本文からIDを作る。
+    """
+    if stable_id:
+        return sha1_short(
+            f"{code}|stable-id|{stable_id}"
+        )
+
+    normalized = normalize_text(text)
+
+    return sha1_short(
+        f"{code}|text|{normalized[:800]}"
+    )
+
+
+def iter_json_values(
+    obj: Any,
+) -> Iterable[Any]:
+    """JSON内のすべての値を再帰的に取得する。"""
     yield obj
+
     if isinstance(obj, dict):
-        for v in obj.values():
-            yield from iter_json_values(v)
+        for value in obj.values():
+            yield from iter_json_values(value)
+
     elif isinstance(obj, list):
-        for v in obj:
-            yield from iter_json_values(v)
+        for value in obj:
+            yield from iter_json_values(value)
 
 
-def extract_posts_from_json(code: str, data: Any) -> List[Post]:
+def get_first_scalar(
+    item: Dict[str, Any],
+    keys: Sequence[str],
+) -> str:
+    """指定したキーのうち、最初に見つかった値を返す。"""
+    for key in keys:
+        value = item.get(key)
+
+        if isinstance(
+            value,
+            (str, int, float),
+        ):
+            return str(value)
+
+    return ""
+
+
+def extract_posts_from_json(
+    code: str,
+    data: Any,
+) -> List[Post]:
+    """ページ内のJSONから投稿を抽出する。"""
     posts: List[Post] = []
-    seen = set()
+    seen_ids = set()
 
-    text_keys = ("body", "text", "message", "comment", "content", "description")
-    id_keys = ("id", "commentId", "postId", "no", "index", "createdAt", "updatedAt", "date", "time")
+    text_keys = (
+        "body",
+        "text",
+        "message",
+        "comment",
+        "content",
+        "description",
+    )
+
+    stable_id_keys = (
+        "commentId",
+        "postId",
+        "messageId",
+        "threadCommentId",
+        "id",
+        "no",
+        "index",
+    )
 
     for item in iter_json_values(data):
         if not isinstance(item, dict):
             continue
 
-        text = None
-        for k in text_keys:
-            v = item.get(k)
-            if isinstance(v, str):
-                candidate = normalize_text(v)
-                if looks_like_post_text(candidate):
-                    text = candidate
-                    break
+        post_text = ""
 
-        if not text:
+        for key in text_keys:
+            value = item.get(key)
+
+            if not isinstance(value, str):
+                continue
+
+            candidate = normalize_text(value)
+
+            if looks_like_post_text(candidate):
+                post_text = candidate
+                break
+
+        if not post_text:
             continue
 
-        extra_parts = []
-        for k in id_keys:
-            v = item.get(k)
-            if isinstance(v, (str, int, float)):
-                extra_parts.append(str(v))
+        stable_id = get_first_scalar(
+            item,
+            stable_id_keys,
+        )
 
-        pid = make_post_id(code, text, "|".join(extra_parts))
+        post_id = make_post_id(
+            code=code,
+            text=post_text,
+            stable_id=stable_id,
+        )
 
-        if pid in seen:
+        if post_id in seen_ids:
             continue
 
-        seen.add(pid)
-        posts.append(Post(post_id=pid, text=text))
+        seen_ids.add(post_id)
+
+        posts.append(
+            Post(
+                post_id=post_id,
+                text=post_text,
+            )
+        )
 
     return posts
 
 
-def extract_posts_from_html_fallback(code: str, soup: BeautifulSoup) -> List[Post]:
-    posts: List[Post] = []
-    seen = set()
+def extract_posts_from_html_fallback(
+    code: str,
+    soup: BeautifulSoup,
+) -> List[Post]:
+    """
+    JSONから取得できない場合に、
+    HTML要素から投稿を取得する。
+    """
+    selector_groups = [
+        '[data-testid*="comment"]',
+        '[class*="Comment"]',
+        "article",
+        "li",
+        "section",
+        "div",
+    ]
 
-    for selector in ["article", "li", "section", "div"]:
+    for selector in selector_groups:
+        posts: List[Post] = []
+        seen_ids = set()
+        seen_text = set()
+
         for node in soup.select(selector):
-            text = normalize_text(node.get_text(" "))
+            text = normalize_text(
+                node.get_text(
+                    " ",
+                    strip=True,
+                )
+            )
 
             if not looks_like_post_text(text):
                 continue
 
+            # 親要素全体を投稿として拾う誤検知を減らす
             if len(text) > 600:
                 continue
 
-            pid = make_post_id(code, text)
-
-            if pid in seen:
+            if text in seen_text:
                 continue
 
-            seen.add(pid)
-            posts.append(Post(post_id=pid, text=text))
+            seen_text.add(text)
 
-            if len(posts) >= MAX_POSTS_PER_STOCK * 2:
+            post_id = make_post_id(
+                code=code,
+                text=text,
+            )
+
+            if post_id in seen_ids:
+                continue
+
+            seen_ids.add(post_id)
+
+            posts.append(
+                Post(
+                    post_id=post_id,
+                    text=text,
+                )
+            )
+
+            if (
+                len(posts)
+                >= MAX_POSTS_PER_STOCK * 2
+            ):
                 break
 
+        # このセレクタで投稿が取得できた場合は採用
         if posts:
-            break
+            return posts
 
-    return posts
+    return []
 
 
-def fetch_posts(code: str) -> Tuple[List[Post], Optional[str]]:
+def fetch_posts(
+    code: str,
+) -> Tuple[List[Post], Optional[str]]:
+    """
+    Yahooファイナンス掲示板から投稿を取得する。
+
+    一時的な通信エラーに備え、最大2回試行する。
+    """
     url = board_url(code)
-    last_error = None
+    last_error: Optional[str] = None
 
-    # 一時的なエラー対策で2回試す
-    for _ in range(2):
+    for attempt in range(2):
         try:
-            res = requests.get(url, headers=HEADERS, timeout=25)
+            response = requests.get(
+                url,
+                headers=HEADERS,
+                timeout=25,
+            )
 
-            if res.status_code != 200:
-                last_error = f"HTTP {res.status_code}"
-                time.sleep(2)
+            if response.status_code != 200:
+                last_error = (
+                    f"HTTP {response.status_code}"
+                )
+
+                if attempt == 0:
+                    time.sleep(2)
+
                 continue
 
-            soup = BeautifulSoup(res.text, "html.parser")
+            soup = BeautifulSoup(
+                response.text,
+                "html.parser",
+            )
 
             posts: List[Post] = []
             seen_ids = set()
 
-            # Next.js等のJSONから投稿を拾う
+            # Next.jsなどの埋め込みJSONを探す
             for script in soup.find_all("script"):
-                raw = script.string or script.get_text() or ""
+                raw = (
+                    script.string
+                    or script.get_text()
+                    or ""
+                )
+
                 raw = raw.strip()
 
                 if not raw:
                     continue
 
-                if not (raw.startswith("{") or raw.startswith("[")):
+                if not (
+                    raw.startswith("{")
+                    or raw.startswith("[")
+                ):
                     continue
 
                 try:
                     data = json.loads(raw)
-                except Exception:
+
+                except (
+                    json.JSONDecodeError,
+                    TypeError,
+                ):
                     continue
 
-                for p in extract_posts_from_json(code, data):
-                    if p.post_id not in seen_ids:
-                        seen_ids.add(p.post_id)
-                        posts.append(p)
+                extracted_posts = (
+                    extract_posts_from_json(
+                        code,
+                        data,
+                    )
+                )
 
-            # JSONで取れない時だけHTMLから拾う
+                for post in extracted_posts:
+                    if post.post_id in seen_ids:
+                        continue
+
+                    seen_ids.add(post.post_id)
+                    posts.append(post)
+
+            # JSONから投稿を取れなかった場合
             if not posts:
-                posts = extract_posts_from_html_fallback(code, soup)
+                posts = (
+                    extract_posts_from_html_fallback(
+                        code,
+                        soup,
+                    )
+                )
 
-            unique: List[Post] = []
+            unique_posts: List[Post] = []
             seen_text = set()
 
-            for p in posts:
-                key = normalize_text(p.text)
+            for post in posts:
+                normalized = normalize_text(
+                    post.text
+                )
 
-                if key in seen_text:
+                if normalized in seen_text:
                     continue
 
-                seen_text.add(key)
-                unique.append(p)
+                seen_text.add(normalized)
+                unique_posts.append(post)
 
-                if len(unique) >= MAX_POSTS_PER_STOCK:
+                if (
+                    len(unique_posts)
+                    >= MAX_POSTS_PER_STOCK
+                ):
                     break
 
-            return unique, None
+            if not unique_posts:
+                return (
+                    [],
+                    (
+                        "投稿を取得できませんでした"
+                        "（Yahoo側のHTML変更の可能性）"
+                    ),
+                )
 
-        except Exception as e:
-            last_error = repr(e)
-            time.sleep(2)
+            return unique_posts, None
 
-    return [], last_error
+        except requests.RequestException as exc:
+            last_error = repr(exc)
 
+            if attempt == 0:
+                time.sleep(2)
 
-def keyword_hits(text: str, keywords: Sequence[str]) -> List[str]:
-    hits = []
-    upper_text = text.upper()
+        except Exception as exc:
+            last_error = repr(exc)
 
-    for kw in keywords:
-        if kw.upper() in upper_text:
-            hits.append(kw)
+            if attempt == 0:
+                time.sleep(2)
 
-    return hits
+    return (
+        [],
+        last_error or "unknown error",
+    )
 
 
 def load_state() -> Dict[str, Any]:
+    """前回の監視状態を読み込む。"""
     if not STATE_PATH.exists():
-        return {"stocks": {}, "updated_at": None}
+        return {
+            "stocks": {},
+            "updated_at": None,
+        }
 
     try:
-        return json.loads(STATE_PATH.read_text(encoding="utf-8"))
-    except Exception:
-        return {"stocks": {}, "updated_at": None}
+        data = json.loads(
+            STATE_PATH.read_text(
+                encoding="utf-8"
+            )
+        )
+
+        if not isinstance(data, dict):
+            raise ValueError(
+                "state is not a dictionary"
+            )
+
+        data.setdefault("stocks", {})
+
+        return data
+
+    except Exception as exc:
+        print(
+            "[WARN] 状態ファイルを"
+            f"読み込めませんでした: {exc!r}"
+        )
+
+        return {
+            "stocks": {},
+            "updated_at": None,
+        }
 
 
-def save_state(state: Dict[str, Any]) -> None:
+def save_state(
+    state: Dict[str, Any],
+) -> None:
+    """今回の監視状態を保存する。"""
     state["updated_at"] = now_jst_iso()
-    STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    if STATE_PATH.parent != Path("."):
+        STATE_PATH.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+    temporary_path = STATE_PATH.with_suffix(
+        STATE_PATH.suffix + ".tmp"
+    )
+
+    temporary_path.write_text(
+        json.dumps(
+            state,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    temporary_path.replace(STATE_PATH)
 
 
-def send_ifttt(value1: str, value2: str, value3: str) -> bool:
+def send_ifttt(
+    value1: str,
+    value2: str,
+    value3: str,
+) -> bool:
+    """IFTTT Webhooksへ通知する。"""
     if not IFTTT_WEBHOOK_KEY:
-        print("[WARN] IFTTT_WEBHOOK_KEY が未設定のため通知をスキップしました。")
-        print(f"       {value1} | {value2} | {value3}")
+        print(
+            "[WARN] IFTTT_WEBHOOK_KEY "
+            "または IFTTT_KEY が未設定です。"
+        )
+
+        print(
+            f"       {value1} | "
+            f"{value2} | "
+            f"{value3}"
+        )
+
         return False
 
-    url = f"https://maker.ifttt.com/trigger/{IFTTT_EVENT_NAME}/with/key/{IFTTT_WEBHOOK_KEY}"
+    url = (
+        "https://maker.ifttt.com/trigger/"
+        f"{IFTTT_EVENT_NAME}"
+        "/with/key/"
+        f"{IFTTT_WEBHOOK_KEY}"
+    )
 
     payload = {
         "value1": value1[:1000],
@@ -357,32 +687,82 @@ def send_ifttt(value1: str, value2: str, value3: str) -> bool:
     }
 
     try:
-        res = requests.post(url, json=payload, timeout=15)
+        response = requests.post(
+            url,
+            json=payload,
+            timeout=15,
+        )
 
-        if 200 <= res.status_code < 300:
+        if (
+            200
+            <= response.status_code
+            < 300
+        ):
             return True
 
-        print(f"[WARN] IFTTT通知失敗 HTTP {res.status_code}: {res.text[:200]}")
+        print(
+            "[WARN] IFTTT通知失敗 "
+            f"HTTP {response.status_code}: "
+            f"{response.text[:200]}"
+        )
+
         return False
 
-    except Exception as e:
-        print(f"[WARN] IFTTT通知例外: {e!r}")
+    except requests.RequestException as exc:
+        print(
+            f"[WARN] IFTTT通知例外: {exc!r}"
+        )
+
         return False
 
 
-def make_snippet(posts: Sequence[Post], max_len: int = 180) -> str:
+def make_snippet(
+    posts: Sequence[Post],
+    max_len: int = 220,
+) -> str:
+    """通知に載せる投稿の抜粋を作る。"""
     if not posts:
         return ""
 
-    text = re.sub(r"\s+", " ", posts[0].text).strip()
-    return text[:max_len] + ("…" if len(text) > max_len else "")
+    snippets: List[str] = []
+
+    for post in posts[:3]:
+        text = normalize_text(post.text)
+
+        if len(text) > 90:
+            text = text[:90] + "…"
+
+        snippets.append(text)
+
+    joined = " / ".join(snippets)
+
+    if len(joined) > max_len:
+        return joined[:max_len] + "…"
+
+    return joined
 
 
 def main() -> int:
-    print(f"=== policy24 board monitor start: {now_jst_iso()} ===")
+    started_at = now_jst_iso()
+
+    print(
+        "=== Yahoo掲示板5分監視 start: "
+        f"{started_at} ==="
+    )
+
+    print(f"state={STATE_PATH}")
+    print(
+        f"threshold={NEW_POST_THRESHOLD}"
+    )
 
     state = load_state()
-    stocks_state: Dict[str, Any] = state.setdefault("stocks", {})
+
+    stocks_state: Dict[str, Any] = (
+        state.setdefault(
+            "stocks",
+            {},
+        )
+    )
 
     total_alerts = 0
     total_errors = 0
@@ -390,122 +770,173 @@ def main() -> int:
     for stock in WATCHLIST:
         code = stock["code"]
         name = stock["name"]
-        theme = stock["theme"]
         url = board_url(code)
 
-        print(f"\n[{code} {name}] fetch {url}")
+        print(
+            f"\n[{code} {name}] "
+            f"fetch {url}"
+        )
 
         posts, error = fetch_posts(code)
 
+        previous = stocks_state.get(
+            code,
+            {},
+        )
+
         if error:
             total_errors += 1
+
             print(f"  ERROR: {error}")
 
-            prev = stocks_state.get(code, {})
             stocks_state[code] = {
-                **prev,
+                **previous,
                 "name": name,
-                "theme": theme,
                 "url": url,
                 "last_error": error,
                 "updated_at": now_jst_iso(),
             }
 
-            time.sleep(REQUEST_INTERVAL_SEC)
+            time.sleep(
+                REQUEST_INTERVAL_SEC
+            )
+
             continue
 
-        prev = stocks_state.get(code, {})
-        prev_seen = set(prev.get("seen_post_ids", []))
-        first_run_for_stock = code not in stocks_state
+        previous_seen_list = previous.get(
+            "seen_post_ids",
+            [],
+        )
 
-        current_ids = [p.post_id for p in posts]
-        new_posts = [p for p in posts if p.post_id not in prev_seen]
+        if not isinstance(
+            previous_seen_list,
+            list,
+        ):
+            previous_seen_list = []
 
-        strong_posts: List[Tuple[Post, List[str]]] = []
-        weak_posts: List[Tuple[Post, List[str]]] = []
+        previous_seen = set(
+            previous_seen_list
+        )
 
-        for p in new_posts:
-            sh = keyword_hits(p.text, STRONG_KEYWORDS)
-            wh = keyword_hits(p.text, WEAK_KEYWORDS)
+        baseline_initialized = bool(
+            previous.get(
+                "baseline_initialized",
+                False,
+            )
+        )
 
-            if sh:
-                strong_posts.append((p, sh))
+        current_ids = [
+            post.post_id
+            for post in posts
+        ]
 
-            if wh:
-                weak_posts.append((p, wh))
+        # 前回までに存在しなかった投稿を抽出
+        new_posts = [
+            post
+            for post in posts
+            if post.post_id
+            not in previous_seen
+        ]
 
         print(
             f"  posts={len(posts)} "
-            f"new={len(new_posts)} "
-            f"strong={len(strong_posts)} "
-            f"weak={len(weak_posts)}"
+            f"new_since_previous_run="
+            f"{len(new_posts)} "
+            f"baseline="
+            f"{baseline_initialized}"
         )
 
-        should_alert = False
-        alert_type = ""
-        hit_words: List[str] = []
-        sample_posts: List[Post] = []
+        # 新規投稿が5件以上なら通知
+        should_alert = (
+            len(new_posts)
+            >= NEW_POST_THRESHOLD
+        )
 
-        if strong_posts:
-            should_alert = True
-            alert_type = "強キーワード検知"
-            hit_words = sorted({kw for _, kws in strong_posts for kw in kws})[:10]
-            sample_posts = [p for p, _ in strong_posts]
-
-        elif len(new_posts) >= POST_SPIKE_THRESHOLD and weak_posts:
-            should_alert = True
-            alert_type = "投稿急増＋弱キーワード"
-            hit_words = sorted({kw for _, kws in weak_posts for kw in kws})[:10]
-            sample_posts = [p for p, _ in weak_posts]
-
-        elif ALERT_POST_SPIKE_ONLY and len(new_posts) >= POST_SPIKE_ONLY_THRESHOLD:
-            should_alert = True
-            alert_type = "投稿数急増"
-            sample_posts = new_posts
-
-        # 初回は既存投稿を保存するだけ
-        if first_run_for_stock and not ALERT_ON_FIRST_RUN:
-            print("  first run baseline only: no alert")
+        # 初回実行は現在の投稿を基準として保存するだけ
+        if (
+            not baseline_initialized
+            and not ALERT_ON_FIRST_RUN
+        ):
             should_alert = False
+
+            print(
+                "  first run baseline only: "
+                "no alert"
+            )
 
         if should_alert:
             total_alerts += 1
 
-            title = f"政策24｜{code} {name}｜{alert_type}"
-            value2 = (
-                f"テーマ:{theme} / 新規{len(new_posts)}件"
-                + (f" / 検出:{', '.join(hit_words)}" if hit_words else "")
-                + f" / 抜粋:{make_snippet(sample_posts)}"
+            title = (
+                "Yahoo掲示板急増｜"
+                f"{code} {name}"
             )
+
+            value2 = (
+                "前回5分から"
+                f"新規投稿{len(new_posts)}件"
+                f"（通知基準"
+                f"{NEW_POST_THRESHOLD}件以上）"
+                f" / 抜粋: "
+                f"{make_snippet(new_posts)}"
+            )
+
             value3 = url
 
-            ok = send_ifttt(title, value2, value3)
-            print(f"  ALERT sent={ok}: {title}")
+            sent = send_ifttt(
+                title,
+                value2,
+                value3,
+            )
 
-        # 最新分＋過去分を残し、再通知を抑える
-        merged_seen = list(dict.fromkeys(current_ids + list(prev_seen)))[:400]
+            print(
+                f"  ALERT sent={sent}: "
+                f"{title}"
+            )
+
+        # 現在取得した投稿IDと過去の投稿IDを保存
+        # 同じ投稿の再通知を防ぐ
+        merged_seen = list(
+            dict.fromkeys(
+                current_ids
+                + previous_seen_list
+            )
+        )[:800]
 
         stocks_state[code] = {
             "name": name,
-            "theme": theme,
             "url": url,
+            "baseline_initialized": True,
             "seen_post_ids": merged_seen,
-            "last_seen_count_on_page": len(posts),
-            "last_new_count": len(new_posts),
+            "last_seen_count_on_page": (
+                len(posts)
+            ),
+            "last_new_count": (
+                len(new_posts)
+            ),
+            "last_alerted": bool(
+                should_alert
+            ),
             "last_error": None,
             "updated_at": now_jst_iso(),
         }
 
-        time.sleep(REQUEST_INTERVAL_SEC)
+        time.sleep(
+            REQUEST_INTERVAL_SEC
+        )
 
     save_state(state)
 
     print(
-        f"\n=== done: alerts={total_alerts}, "
+        "\n=== done: "
+        f"alerts={total_alerts}, "
         f"errors={total_errors}, "
-        f"updated={now_jst_iso()} ==="
+        f"updated={now_jst_iso()} "
+        "==="
     )
 
+    # 一部銘柄でエラーが発生しても、
+    # 他銘柄の結果を保存するため正常終了扱いにする
     return 0
 
 
