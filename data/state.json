@@ -1,0 +1,28 @@
+{
+  "alerts": {},
+  "last_run": "2026-07-17T09:40:26.899148+09:00",
+  "last_result": {
+    "total_boards": 91,
+    "checked": 81,
+    "failed": 10,
+    "alerted": 0,
+    "surge_threshold": 5,
+    "elapsed_seconds": 190.3,
+    "groups": [
+      {
+        "group": 1,
+        "boards": 46,
+        "checked": 41,
+        "failed": 5,
+        "alerted": 0
+      },
+      {
+        "group": 2,
+        "boards": 45,
+        "checked": 40,
+        "failed": 5,
+        "alerted": 0
+      }
+    ]
+  }
+}
