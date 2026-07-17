@@ -3,16 +3,16 @@
     "278A": "2026-07-17T13:44:48.922147+09:00",
     "6613": "2026-07-17T14:33:54.173917+09:00",
     "186A": "2026-07-17T13:48:06.220999+09:00",
-    "3905": "2026-07-17T14:12:40.605052+09:00"
+    "3905": "2026-07-17T14:37:40.869184+09:00"
   },
-  "last_run": "2026-07-17T14:34:34.699865+09:00",
+  "last_run": "2026-07-17T14:39:40.451693+09:00",
   "last_result": {
     "total_boards": 91,
     "checked": 91,
     "failed": 0,
     "alerted": 1,
     "surge_threshold": 5,
-    "elapsed_seconds": 135.2,
+    "elapsed_seconds": 142.3,
     "ifttt_key_configured": true,
     "ifttt_event": "yahoo_board_spike",
     "groups": [
@@ -21,14 +21,14 @@
         "boards": 46,
         "checked": 46,
         "failed": 0,
-        "alerted": 0
+        "alerted": 1
       },
       {
         "group": 2,
         "boards": 45,
         "checked": 45,
         "failed": 0,
-        "alerted": 1
+        "alerted": 0
       }
     ]
   }
