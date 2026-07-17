@@ -2,31 +2,32 @@
   "alerts": {
     "278A": "2026-07-17T13:44:48.922147+09:00",
     "6613": "2026-07-17T13:45:25.006859+09:00",
-    "186A": "2026-07-17T13:48:06.220999+09:00"
+    "186A": "2026-07-17T13:48:06.220999+09:00",
+    "3905": "2026-07-17T14:12:40.605052+09:00"
   },
-  "last_run": "2026-07-17T14:10:12.775659+09:00",
+  "last_run": "2026-07-17T14:14:34.930679+09:00",
   "last_result": {
     "total_boards": 91,
-    "checked": 85,
-    "failed": 6,
-    "alerted": 0,
+    "checked": 91,
+    "failed": 0,
+    "alerted": 1,
     "surge_threshold": 5,
-    "elapsed_seconds": 174.9,
+    "elapsed_seconds": 135.3,
     "ifttt_key_configured": true,
     "ifttt_event": "yahoo_board_spike",
     "groups": [
       {
         "group": 1,
         "boards": 46,
-        "checked": 43,
-        "failed": 3,
-        "alerted": 0
+        "checked": 46,
+        "failed": 0,
+        "alerted": 1
       },
       {
         "group": 2,
         "boards": 45,
-        "checked": 42,
-        "failed": 3,
+        "checked": 45,
+        "failed": 0,
         "alerted": 0
       }
     ]
