@@ -1,26 +1,26 @@
 {
   "alerts": {},
-  "last_run": "2026-07-17T12:37:27.248067+09:00",
+  "last_run": "2026-07-17T12:45:58.447808+09:00",
   "last_result": {
     "total_boards": 91,
-    "checked": 56,
-    "failed": 35,
+    "checked": 73,
+    "failed": 18,
     "alerted": 0,
     "surge_threshold": 5,
-    "elapsed_seconds": 307.0,
+    "elapsed_seconds": 220.7,
     "groups": [
       {
         "group": 1,
         "boards": 46,
-        "checked": 28,
-        "failed": 18,
+        "checked": 37,
+        "failed": 9,
         "alerted": 0
       },
       {
         "group": 2,
         "boards": 45,
-        "checked": 28,
-        "failed": 17,
+        "checked": 36,
+        "failed": 9,
         "alerted": 0
       }
     ]
