@@ -5,6 +5,7 @@ import time
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
+from urllib.parse import quote, unquote
 from zoneinfo import ZoneInfo
 
 import requests
@@ -14,8 +15,64 @@ from bs4 import BeautifulSoup
 JST = ZoneInfo("Asia/Tokyo")
 STATE_PATH = "data/state.json"
 
-IFTTT_KEY = os.environ.get("IFTTT_KEY", "")
-IFTTT_EVENT = os.environ.get("IFTTT_EVENT", "yahoo_board_spike")
+
+# ============================================================
+# IFTTT設定
+# ============================================================
+
+def normalize_ifttt_key(raw_value):
+    """
+    GitHub Secretに以下のどちらが登録されていても対応する。
+
+    1. Webhooksキーだけ
+    2. Webhook URL全体
+       https://maker.ifttt.com/trigger/.../with/key/XXXX
+    """
+    value = (raw_value or "").strip()
+
+    if "/with/key/" in value:
+        value = value.split("/with/key/", 1)[1]
+
+    value = value.split("?", 1)[0]
+    value = value.split("#", 1)[0]
+    value = value.strip("/")
+
+    return unquote(value)
+
+
+def normalize_ifttt_event(raw_value):
+    """
+    イベント名だけでなく、Webhook URL全体が渡された場合にも対応する。
+    """
+    value = (raw_value or "").strip()
+
+    if "/trigger/" in value:
+        value = value.split("/trigger/", 1)[1]
+        value = value.split("/", 1)[0]
+
+    value = value.split("?", 1)[0]
+    value = value.split("#", 1)[0]
+    value = value.strip("/")
+
+    return unquote(value) or "yahoo_board_spike"
+
+
+IFTTT_KEY = normalize_ifttt_key(
+    os.environ.get("IFTTT_KEY")
+    or os.environ.get("IFTTT_WEBHOOK_KEY")
+    or ""
+)
+
+IFTTT_EVENT = normalize_ifttt_event(
+    os.environ.get("IFTTT_EVENT")
+    or os.environ.get("IFTTT_EVENT_NAME")
+    or "yahoo_board_spike"
+)
+
+
+# ============================================================
+# 監視設定
+# ============================================================
 
 # 直近5分の投稿数が、その前の5分より5件以上増えたら通知
 SURGE_THRESHOLD = 5
@@ -167,7 +224,6 @@ BOARD_ITEMS = [
 ]
 
 
-# 企業コードから掲示板URLを自動生成
 ALL_BOARDS = [
     {
         "name": name,
@@ -186,16 +242,13 @@ BOARD_GROUPS = [
 
 
 def log(group_number, message):
-    """
-    グループ番号付きでログを表示する。
-    """
-    print(f"[G{group_number}] {message}", flush=True)
+    print(
+        f"[G{group_number}] {message}",
+        flush=True,
+    )
 
 
 def validate_boards():
-    """
-    企業コードの重複やグループ分割漏れがないか確認する。
-    """
     codes = [
         board["code"]
         for board in ALL_BOARDS
@@ -227,9 +280,6 @@ def validate_boards():
 
 
 def load_state():
-    """
-    前回までの通知時刻などを読み込む。
-    """
     if not os.path.exists(STATE_PATH):
         return {}
 
@@ -255,9 +305,6 @@ def load_state():
 
 
 def save_state(state):
-    """
-    通知時刻や最終実行結果を保存する。
-    """
     state_dir = os.path.dirname(
         STATE_PATH
     )
@@ -268,9 +315,7 @@ def save_state(state):
             exist_ok=True,
         )
 
-    temporary_path = (
-        STATE_PATH + ".tmp"
-    )
+    temporary_path = STATE_PATH + ".tmp"
 
     with open(
         temporary_path,
@@ -291,12 +336,7 @@ def save_state(state):
 
 
 def is_market_open(now):
-    """
-    日本株の市場時間内か判定する。
-
-    土日は市場時間外。
-    祝日は未対応。
-    """
+    # 土日は市場時間外。祝日は未対応。
     if now.weekday() >= 5:
         return False
 
@@ -326,12 +366,6 @@ def fetch_html(
     url,
     group_number,
 ):
-    """
-    Yahooファイナンス掲示板のHTMLを取得する。
-
-    一時的なエラーに備え、
-    最大3回試行する。
-    """
     last_error = None
 
     for attempt in range(3):
@@ -365,13 +399,11 @@ def fetch_html(
             log(
                 group_number,
                 (
-                    "fetch error "
-                    f"attempt={attempt + 1}: "
+                    f"fetch error attempt={attempt + 1}: "
                     f"{error}"
                 ),
             )
 
-        # 再試行前だけ待つ
         if attempt < 2:
             time.sleep(
                 3 + attempt * 3
@@ -383,10 +415,6 @@ def fetch_html(
 
 
 def html_to_text(html):
-    """
-    HTMLからscriptやstyleなどを削除し、
-    表示テキストに変換する。
-    """
     soup = BeautifulSoup(
         html,
         "html.parser",
@@ -403,25 +431,17 @@ def html_to_text(html):
 
     text = soup.get_text("\n")
 
-    text = re.sub(
+    return re.sub(
         r"\n+",
         "\n",
         text,
     )
-
-    return text
 
 
 def extract_post_dates(
     html,
     now,
 ):
-    """
-    掲示板ページから投稿日時を抽出する。
-
-    同じ時刻に複数投稿がある場合も、
-    投稿数分だけ日時を残す。
-    """
     text = html_to_text(html)
 
     patterns = [
@@ -480,7 +500,7 @@ def extract_post_dates(
             ):
                 continue
 
-            # 現在より未来の日時は誤取得として除外
+            # 現在より1分を超えて未来の日時は除外
             if (
                 post_datetime
                 > now + timedelta(minutes=1)
@@ -507,10 +527,13 @@ def judge_spike(
     now,
 ):
     """
-    直近5分と、その前の5分の投稿数を比較する。
+    銘柄ごとに以下を計算する。
 
-    直近5分8件、前5分3件なら差は+5件。
-    この場合は通知対象。
+    直近5分の投稿数
+    －
+    その前の5分の投稿数
+
+    差が5件以上なら通知対象。
     """
     last5 = 0
     prev5 = 0
@@ -534,8 +557,6 @@ def judge_spike(
         ):
             prev5 += 1
 
-        # 新しい順に並んでいるため、
-        # 10分以上前になったら確認終了
         elif diff_minutes >= 10:
             break
 
@@ -544,8 +565,7 @@ def judge_spike(
     )
 
     should_alert = (
-        surge
-        >= SURGE_THRESHOLD
+        surge >= SURGE_THRESHOLD
     )
 
     return (
@@ -566,16 +586,20 @@ def send_ifttt(
     market_open,
     group_number,
 ):
-    """
-    IFTTT Webhooksへ通知する。
-    """
     if not IFTTT_KEY:
         log(
             group_number,
             (
                 "IFTTT_KEY not set. "
-                "skip notification."
+                "GitHub ActionsのSecretとenv設定を確認してください。"
             ),
+        )
+        return False
+
+    if not IFTTT_EVENT:
+        log(
+            group_number,
+            "IFTTT_EVENT is empty.",
         )
         return False
 
@@ -585,17 +609,25 @@ def send_ifttt(
         else "市場時間外"
     )
 
+    encoded_event = quote(
+        IFTTT_EVENT.strip(),
+        safe="",
+    )
+
+    encoded_key = quote(
+        IFTTT_KEY.strip(),
+        safe="",
+    )
+
     webhook_url = (
         "https://maker.ifttt.com/trigger/"
-        f"{IFTTT_EVENT}"
+        f"{encoded_event}"
         "/with/key/"
-        f"{IFTTT_KEY}"
+        f"{encoded_key}"
     )
 
     payload = {
-        "value1": (
-            f"{name} 掲示板急増"
-        ),
+        "value1": f"{name} 掲示板急増",
         "value2": (
             f"{mode} / {code} / "
             f"直近5分:{last5}件"
@@ -610,24 +642,35 @@ def send_ifttt(
     try:
         response = requests.post(
             webhook_url,
-            data=payload,
+            json=payload,
             timeout=20,
         )
 
         log(
             group_number,
             (
-                f"IFTTT status="
-                f"{response.status_code} "
+                f"IFTTT status={response.status_code} "
                 f"body={response.text[:120]}"
             ),
         )
 
-        return (
+        if (
             200
             <= response.status_code
             < 300
+        ):
+            return True
+
+        log(
+            group_number,
+            (
+                "IFTTT notification failed. "
+                "Webhookキー、イベント名、"
+                "IFTTTアプレットの有効状態を確認してください。"
+            ),
         )
+
+        return False
 
     except Exception as error:
         log(
@@ -642,12 +685,6 @@ def process_group(
     boards,
     alerts_snapshot,
 ):
-    """
-    1つのグループを順番に監視する。
-
-    グループ1とグループ2は、
-    ThreadPoolExecutorで同時に実行される。
-    """
     checked = 0
     failed = 0
     alerted = 0
@@ -662,8 +699,7 @@ def process_group(
     log(
         group_number,
         (
-            "group start "
-            f"boards={len(boards)}"
+            f"group start boards={len(boards)}"
         ),
     )
 
@@ -691,7 +727,7 @@ def process_group(
                     group_number=group_number,
                 )
 
-                # 各銘柄の取得直後の時刻を使用する
+                # 各銘柄を取得した時点の時刻で判定
                 board_now = datetime.now(
                     JST
                 )
@@ -702,11 +738,9 @@ def process_group(
                     )
                 )
 
-                post_dates = (
-                    extract_post_dates(
-                        html=html,
-                        now=board_now,
-                    )
+                post_dates = extract_post_dates(
+                    html=html,
+                    now=board_now,
                 )
 
                 if not post_dates:
@@ -735,8 +769,7 @@ def process_group(
                         f"last5={last5} "
                         f"prev5={prev5} "
                         f"surge={surge:+d} "
-                        f"should_alert="
-                        f"{should_alert}"
+                        f"should_alert={should_alert}"
                     ),
                 )
 
@@ -780,8 +813,8 @@ def process_group(
                         log(
                             group_number,
                             (
-                                "cooldown state "
-                                f"error: {error}"
+                                "cooldown state error: "
+                                f"{error}"
                             ),
                         )
 
@@ -789,25 +822,18 @@ def process_group(
                     should_alert
                     and cooldown_ok
                 ):
-                    notification_sent = (
-                        send_ifttt(
-                            name=name,
-                            code=code,
-                            url=url,
-                            last5=last5,
-                            prev5=prev5,
-                            surge=surge,
-                            market_open=(
-                                board_market_open
-                            ),
-                            group_number=(
-                                group_number
-                            ),
-                        )
+                    notification_sent = send_ifttt(
+                        name=name,
+                        code=code,
+                        url=url,
+                        last5=last5,
+                        prev5=prev5,
+                        surge=surge,
+                        market_open=board_market_open,
+                        group_number=group_number,
                     )
 
-                    # IFTTT送信成功時だけ
-                    # クールダウン開始時刻を保存
+                    # IFTTT送信成功時だけクールダウン開始
                     if notification_sent:
                         alert_updates[code] = (
                             board_now.isoformat()
@@ -825,7 +851,6 @@ def process_group(
 
                 failed += 1
 
-            # 最後の銘柄の後は待たない
             if index < len(boards):
                 time.sleep(
                     random.uniform(
@@ -840,7 +865,7 @@ def process_group(
     log(
         group_number,
         (
-            "group finished "
+            f"group finished "
             f"checked={checked} "
             f"failed={failed} "
             f"alerted={alerted}"
@@ -853,9 +878,7 @@ def process_group(
         "checked": checked,
         "failed": failed,
         "alerted": alerted,
-        "alert_updates": (
-            alert_updates
-        ),
+        "alert_updates": alert_updates,
     }
 
 
@@ -868,13 +891,20 @@ def main():
 
     print(
         (
-            "start "
-            f"now={started_at.isoformat()} "
+            f"start now={started_at.isoformat()} "
             f"total_boards={len(ALL_BOARDS)} "
             f"group1={len(BOARD_GROUPS[0])} "
             f"group2={len(BOARD_GROUPS[1])} "
-            f"surge_threshold="
-            f"{SURGE_THRESHOLD}"
+            f"surge_threshold={SURGE_THRESHOLD}"
+        ),
+        flush=True,
+    )
+
+    # キー自体は表示せず、設定状態だけ表示
+    print(
+        (
+            f"ifttt_key_configured={bool(IFTTT_KEY)} "
+            f"ifttt_event={IFTTT_EVENT}"
         ),
         flush=True,
     )
@@ -886,15 +916,12 @@ def main():
         {},
     )
 
-    # スレッド実行中にstateを書き換えないよう、
-    # 通知履歴のコピーを各グループへ渡す
     alerts_snapshot = dict(
         alerts
     )
 
     group_results = []
 
-    # 2グループを同時並行で実行
     with ThreadPoolExecutor(
         max_workers=GROUP_COUNT
     ) as executor:
@@ -916,16 +943,15 @@ def main():
             futures
         ):
             try:
-                result = future.result()
                 group_results.append(
-                    result
+                    future.result()
                 )
 
             except Exception as error:
                 print(
                     (
-                        "group execution "
-                        f"error: {error}"
+                        "group execution error: "
+                        f"{error}"
                     ),
                     flush=True,
                 )
@@ -934,7 +960,6 @@ def main():
     total_failed = 0
     total_alerted = 0
 
-    # 各グループの結果をstateへ反映
     for result in group_results:
         total_checked += result[
             "checked"
@@ -971,30 +996,22 @@ def main():
         "checked": total_checked,
         "failed": total_failed,
         "alerted": total_alerted,
-        "surge_threshold": (
-            SURGE_THRESHOLD
-        ),
+        "surge_threshold": SURGE_THRESHOLD,
         "elapsed_seconds": round(
             elapsed_seconds,
             1,
         ),
+        "ifttt_key_configured": bool(
+            IFTTT_KEY
+        ),
+        "ifttt_event": IFTTT_EVENT,
         "groups": [
             {
-                "group": result[
-                    "group"
-                ],
-                "boards": result[
-                    "boards"
-                ],
-                "checked": result[
-                    "checked"
-                ],
-                "failed": result[
-                    "failed"
-                ],
-                "alerted": result[
-                    "alerted"
-                ],
+                "group": result["group"],
+                "boards": result["boards"],
+                "checked": result["checked"],
+                "failed": result["failed"],
+                "alerted": result["alerted"],
             }
             for result in sorted(
                 group_results,
@@ -1019,8 +1036,7 @@ def main():
             f"checked={total_checked} "
             f"failed={total_failed} "
             f"alerted={total_alerted} "
-            f"elapsed_seconds="
-            f"{elapsed_seconds:.1f}"
+            f"elapsed_seconds={elapsed_seconds:.1f}"
         ),
         flush=True,
     )
