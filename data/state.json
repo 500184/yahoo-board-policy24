@@ -1,13 +1,13 @@
 {
   "alerts": {},
-  "last_run": "2026-07-17T12:49:35.154283+09:00",
+  "last_run": "2026-07-17T12:54:37.467975+09:00",
   "last_result": {
     "total_boards": 91,
     "checked": 91,
     "failed": 0,
     "alerted": 0,
     "surge_threshold": 5,
-    "elapsed_seconds": 138.9,
+    "elapsed_seconds": 138.0,
     "groups": [
       {
         "group": 1,
