@@ -5,14 +5,14 @@
     "186A": "2026-07-17T13:48:06.220999+09:00",
     "3905": "2026-07-17T14:37:40.869184+09:00"
   },
-  "last_run": "2026-07-17T14:59:35.184969+09:00",
+  "last_run": "2026-07-17T15:04:40.972385+09:00",
   "last_result": {
     "total_boards": 91,
     "checked": 91,
     "failed": 0,
     "alerted": 0,
     "surge_threshold": 5,
-    "elapsed_seconds": 136.9,
+    "elapsed_seconds": 141.7,
     "ifttt_key_configured": true,
     "ifttt_event": "yahoo_board_spike",
     "groups": [
